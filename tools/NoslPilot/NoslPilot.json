@@ -1,0 +1,12 @@
+{
+  "id": "NoslPilot",
+  "name": "sts2sim NoSL 执行器",
+  "author": "sts2sim",
+  "description": "让无搜索策略在游戏里操作整局（开发版：靠同种子的影子模拟器取得观察）。只在设置了 NOSL_PILOT_AUTORUN=1 的隔离实例里自动开局，平时不做任何事。",
+  "version": "0.1.0",
+  "has_pck": false,
+  "has_dll": true,
+  "affects_gameplay": false,
+  "min_game_version": "0.111.0",
+  "dependencies": []
+}

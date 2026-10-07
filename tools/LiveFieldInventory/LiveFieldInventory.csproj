@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Lists every instance field the game's model subclasses declare, straight
+    from sts2.dll metadata (no game initialization, no static constructors).
+    The output, data/live_field_inventory.json, is the universe that
+    data/live_state_map.json must classify (tools/gen/check_live_state_map.py).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+</Project>

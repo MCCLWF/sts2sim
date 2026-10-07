@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The original solver grants this assembly access to its internal API.
+       Its search helpers are linked unchanged; our entry point uses the
+       normal-rule oracle bootstrap, never the upstream TestMode bootstrap. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks><LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <AssemblyName>OfflineSearchHarness</AssemblyName>
+    <StartupObject>NoSLTeacherProgram</StartupObject>
+    <CombatSolverSource Condition="'$(CombatSolverSource)' == ''">$(MSBuildProjectDirectory)/../../artifacts/combatsolver-0500-latest/source</CombatSolverSource>
+    <CombatSolverDll Condition="'$(CombatSolverDll)' == ''">$(CombatSolverSource)/.godot/mono/temp/bin/Release/CombatSolver.dll</CombatSolverDll>
+    <SteamRoot Condition="'$(SteamRoot)' == ''">$(HOME)/snap/steam/common/.local/share/Steam</SteamRoot>
+    <RitsuWorkshopRoot Condition="'$(RitsuWorkshopRoot)' == ''">$(SteamRoot)/steamapps/workshop/content/2868840/3747602295</RitsuWorkshopRoot>
+    <RitsuLibReferenceTarget>0.111.0</RitsuLibReferenceTarget>
+    <RitsuLibDir>$(RitsuWorkshopRoot)/lib/$(RitsuLibReferenceTarget)</RitsuLibDir>
+    <RitsuLibReferencesProps>$(RitsuWorkshopRoot)/RitsuLib.References.props</RitsuLibReferencesProps>
+  </PropertyGroup>
+  <Import Project="$(RitsuLibReferencesProps)" Condition="Exists('$(RitsuLibReferencesProps)')" />
+  <ItemGroup>
+    <Compile Include="../Sts2Oracle/*.cs" LinkBase="Oracle" />
+    <Compile Include="../Sts2Headless/*.cs" LinkBase="Headless" />
+    <Compile Include="$(CombatSolverSource)/tools/search/OfflineSearchHarness/*.cs" LinkBase="UpstreamHarness" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="all" />
+    <Publicize Include="sts2" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+    <Reference Include="sts2" HintPath="$(GameData)/sts2.dll" Private="false" />
+    <Reference Include="GodotSharp" HintPath="$(GameData)/GodotSharp.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(GameData)/0Harmony.dll" Private="false" />
+    <Reference Include="CombatSolver" HintPath="$(CombatSolverDll)" Private="false" />
+    <Reference Include="STS2-RitsuLib" HintPath="$(RitsuLibDir)/STS2-RitsuLib.dll" Private="false" Condition="!Exists('$(RitsuLibReferencesProps)')" />
+    <RuntimeHostConfigurationOption Include="Sts2DataDir" Value="$(GameData)" />
+    <RuntimeHostConfigurationOption Include="RitsuLibDir" Value="$(RitsuLibDir)" />
+    <RuntimeHostConfigurationOption Include="RitsuLibCompatDir" Value="$(RitsuWorkshopRoot)/compat/$(RitsuLibReferenceTarget)" />
+    <RuntimeHostConfigurationOption Include="RitsuLibSharedDir" Value="$(RitsuWorkshopRoot)/shared" />
+    <RuntimeHostConfigurationOption Include="CombatSolverDll" Value="$(CombatSolverDll)" />
+  </ItemGroup>
+  <Target Name="ValidateTeacherInputs" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(CombatSolverDll)')" Text="Build the pinned original CombatSolver first; see tools/combatsolver/README.md." />
+    <Error Condition="!Exists('$(RitsuLibReferencesProps)') and !Exists('$(RitsuLibDir)/STS2-RitsuLib.dll')" Text="Missing RitsuLib for game version 0.111.0." />
+  </Target>
+</Project>

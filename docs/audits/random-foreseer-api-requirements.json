@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-09-30",
+  "simulator_checkout": {
+    "path": ".",
+    "head": "5266daf"
+  },
+  "vanilla_truth": {
+    "version": "0.111.0",
+    "source_root": "../Slay the Spire 2/src/Core"
+  },
+  "rf_reference": {
+    "repository": "https://github.com/hotwords123/StS2.RandomForeseer",
+    "version": "0.13.17",
+    "commit": "c4f14db684d831f9786d1c6af15b172b89d04939"
+  },
+  "scope": "Functional requirements and API design reference at baseline 5266daf; current acceptance is tracked in Env/RF checkpoint reports.",
+  "proposed_common_contract": {
+    "entrypoint": "PredictRequest {source_handle, operation: tagged union, stop_policy, trace_options}",
+    "outcome_status": [
+      "Exact",
+      "NeedsChoice",
+      "Unsupported",
+      "Truncated",
+      "Invalid"
+    ],
+    "ownership": "Return owned successor/continuation; preserve source root on prediction failure.",
+    "rng_policy": "Never accept client-supplied RNG or compute prediction by a consumer mirror; call native v0.111.0 operation on private owned branch.",
+    "stop_policy": [
+      "OperationSettled",
+      "NextChoice",
+      "NextPlayerDecision",
+      "EnemyTurnStarted",
+      "SafeCombatEnd",
+      "RoomSettled",
+      "bounded budget"
+    ],
+    "context_fields": [
+      "source_model_ref",
+      "player/owner_ref",
+      "room/reward/shop/minigame_ref",
+      "caller operation",
+      "selected refs",
+      "selector prefs",
+      "pending choice/operation boundary",
+      "source snapshot hash"
+    ],
+    "result_requirements": [
+      "typed results",
+      "causal source and target refs",
+      "ordered state changes",
+      "visibility label",
+      "separate result/trace completeness flags"
+    ]
+  },
+  "features": [
+    {
+      "id": "relic_pickup_hover",
+      "rf_entrypoint": "RandomForeseerCode/OutOfCombat/RelicPickupPrediction.cs:27-83,361-431",
+      "operation": "RelicObtain {player_ref,relic_ref,source_ref,selection_order}",
+      "vanilla_callsite": "Commands/RelicCmd.cs:35-54 calls AddRelicInternal, removes unstackable relics from bags, sets floor and awaits RelicModel.AfterObtained",
+      "rng_and_context": "Clone the exact run/player/room/reward state, selected relic instance and multi-pick order, bags and hooks; let each original AfterObtained choose its own RNG stream.",
+      "result": "Obtained relic and nested cards/potions/relics/curses/transforms/resources/rewards plus pending choices.",
+      "stop": "After obtain effect chain settles, or NeedsChoice / safe room boundary; no future player decisions.",
+      "gap": "No typed hypothetical obtain; source-aware native operation and nested choices required."
+    },
+    {
+      "id": "out_of_combat_transform",
+      "rf_entrypoint": "RandomForeseerCode/OutOfCombat/TransformPrediction.cs; OutOfCombat/Patches/DeckTransformPredictionPatches.cs:39-65",
+      "operation": "TransformCandidate {source_ref,card_refs,selection_context_ref}",
+      "vanilla_callsite": "Factories/CardFactory.cs:170-212; Commands/CardSelectCmd.cs:578-632; Commands/CardCmd.cs:325-352,371-425",
+      "rng_and_context": "The source selects stream/pool; examples: Astrolabe/PandorasBox Niche, Leafy Poultice PlayerRng.Transformations, combat Entropy CombatCardSelection. Preserve selected card refs and batch order.",
+      "result": "Replacement card instances, origins/pile indices, deck delta, and selector facts.",
+      "stop": "At hover for one candidate, NeedsChoice while selection is open, or actual batch completion.",
+      "gap": "Cannot infer a full multi-card transformation from an unselected source."
+    },
+    {
+      "id": "event_option_hover",
+      "rf_entrypoint": "RandomForeseerCode/OutOfCombat/EventOptionPrediction.cs:56-120",
+      "operation": "EventOption {event_ref,option_ref,source_context_ref}",
+      "vanilla_callsite": "Events/EventOption.cs:174-185 calls BeforeChosen then original OnChosen",
+      "rng_and_context": "Exact EventModel instance/RNG/page, owner/player, option identity, local variables and pending reward/choice prefix.",
+      "result": "Immediate random rewards/upgrades/downgrades, page/follow-up options, combat or minigame transition.",
+      "stop": "First nested choice, minigame/room transition, or settled option effect.",
+      "gap": "RF registry is partial; generic event continuation and choices are missing."
+    },
+    {
+      "id": "card_reward_reroll",
+      "rf_entrypoint": "RandomForeseerCode/OutOfCombat/CardRewardPrediction.cs:20-96,123-160",
+      "operation": "RewardAlternative {reward_ref,alternative_id:REROLL}",
+      "vanilla_callsite": "Entities/CardRewardAlternatives/CardRewardAlternative.cs:57-77; Rewards/CardReward.cs:146-165,321-331; Factories/CardFactory.cs:89-109",
+      "rng_and_context": "Exact CardReward, original/reroll options and flags, owner Rewards RNG, current cards and concurrent pending rewards; execute original hooks.",
+      "result": "Exact replacement reward rows/ids and hook changes.",
+      "stop": "At same still-open reward after reroll; picking is a later operation.",
+      "gap": "No generic prediction execution for a non-action hover."
+    },
+    {
+      "id": "courier_shop_restock",
+      "rf_entrypoint": "RandomForeseerCode/OutOfCombat/MerchantRestockPrediction.cs:18-153",
+      "operation": "ShopPurchase {inventory_ref,entry_ref,player_ref}",
+      "vanilla_callsite": "Entities/Merchant/MerchantEntry.cs:69-95; MerchantCardEntry.cs:69-94,156-160; MerchantPotionEntry.cs:43-70,100-104; MerchantRelicEntry.cs:37-77",
+      "rng_and_context": "Exact inventory/slot/cost/sale state, player gold/potion capacity, inventory duplicates, hook state and shop/potion/relic bags. Execute subclass purchase and source refill policy.",
+      "result": "Purchase success/failure, gold delta, acquired item effects, and exact same-slot restock or empty state.",
+      "stop": "After purchase and restock hooks, or pending choice.",
+      "gap": "A direct restock roll would skip source purchase semantics and is not sufficient."
+    },
+    {
+      "id": "paels_wing_sacrifice",
+      "rf_entrypoint": "README.en.md feature list; RandomForeseerCode/OutOfCombat/RelicPickupPrediction.cs and event/reward projections",
+      "operation": "RewardAlternative {reward_ref,alternative_id:SACRIFICE}",
+      "vanilla_callsite": "Models/Relics/PaelsWing.cs:52-91; RelicCmd.cs:35-54; Rewards/CardReward.cs:183-290",
+      "rng_and_context": "Exact reward, Wing counter/threshold, owner, relic bag order and prior reward context.",
+      "result": "Counter delta; threshold relic and its obtain effects; reward completion behavior.",
+      "stop": "After obtain chain / pending choice; original alternative completes the reward.",
+      "gap": "Must represent callback and post-alternative policy, not merely predict relic bag."
+    },
+    {
+      "id": "rest_site_results",
+      "rf_entrypoint": "RandomForeseerCode/OutOfCombat/RestSitePrediction.cs:12-49",
+      "operation": "RestSiteOption {room_ref,option_ref,player_ref}",
+      "vanilla_callsite": "Entities/RestSite/HealRestSiteOption.cs:70-73,101-113; SmithRestSiteOption.cs:49-73; Models/Relics/Shovel.cs:18-25; DreamCatcher.cs:16-25; TinyMailbox.cs:14-24",
+      "rng_and_context": "Exact option, player, HP, chosen upgrade cards, mimic context and relic/hooks. Rewards use their normal native RNG.",
+      "result": "Heal/upgrade/resource delta and actual offered rewards, potentially a nested choice.",
+      "stop": "At generated reward/choice, return continuable successor; do not claim it.",
+      "gap": "No general source-aware rest-site hypothetical operation."
+    },
+    {
+      "id": "crystal_sphere_hidden_board",
+      "rf_entrypoint": "README.en.md; OutOfCombat/Patches/CrystalSphereClairvoyancePatches.cs:10-40",
+      "operation": "CrystalSphereClick {minigame_ref,x,y,tool}",
+      "vanilla_callsite": "Models/Events/CrystalSphere.cs:44-81; Events/Custom/CrystalSphereEvent/CrystalSphereMinigame.cs:92-135,159-202,259-307,332-337",
+      "rng_and_context": "Event RNG, dynamic vars/cost, deck/pools, 11x11 board, cells/items, tool, remaining divinations and click order.",
+      "result": "Changed visible cells, completed hidden items and actual rewards.",
+      "stop": "After each click as a continuation; after final click settle reward synchronizer and stop on nested choices.",
+      "gap": "RF patch only lowers fog opacity; no exact native board export/prediction currently."
+    },
+    {
+      "id": "next_act_query",
+      "rf_entrypoint": "RandomForeseerCode/OutOfCombat/NextActPrediction.cs:12-55; Nodes/NNextActPredictionIcon.cs:48-60",
+      "operation": "Privileged query QueryPreselectedNextAct {run_ref}",
+      "vanilla_callsite": "Existing run query privileged include_future query family; read current queued/preselected act facts.",
+      "rng_and_context": "Current run state and preselected next Act. Must not draw/regenerate RNG.",
+      "result": "Next Act, Ancient and Boss identifiers.",
+      "stop": "Immediate query completion; mark privileged, outside agent observation.",
+      "gap": "Uses privileged data boundary; not an ordinary legal action."
+    },
+    {
+      "id": "combat_transform_entropy",
+      "rf_entrypoint": "RandomForeseerCode/InCombat/CombatTransformPrediction.cs:14-78",
+      "operation": "UseCard plus native selector continuation",
+      "vanilla_callsite": "Models/Powers/EntropyPower.cs:31; CardFactory.cs:170-212; CardCmd.cs:325-425",
+      "rng_and_context": "Source card/power, combat hand, selector prefs/answers, CombatCardSelection stream and operation order.",
+      "result": "Transformed card instances and pile/deck facts.",
+      "stop": "NeedsChoice if unresolved; otherwise source action completion or safe next decision.",
+      "gap": "Must preserve actual source selection and batch transformations."
+    },
+    {
+      "id": "end_turn_damage",
+      "rf_entrypoint": "RandomForeseerCode/InCombat/EndTurnPrediction.cs:13-22",
+      "operation": "EndPlayerTurn {player_ref} (legal action)",
+      "vanilla_callsite": "Combat/CombatManager.cs:1518-1592 (phase one, hooks, BeforeFlush); :1602-1625+ (orb turn-end, Ethereal, hand effects)",
+      "rng_and_context": "All ending players/extra-turn state, hand, orbs, powers, enemies, hooks and native RNG streams.",
+      "result": "Ordered damage/heal/resource/target outcomes plus actual combat phase.",
+      "stop": "Phase one complete, enemy turn started, next player decision, or safe combat end as separately requested.",
+      "gap": "RF's mirror is a subset and does not replace original phase execution."
+    },
+    {
+      "id": "frozen_eye_and_shuffle_order",
+      "rf_entrypoint": "README.en.md Frozen Eye feature and in-combat query helpers",
+      "operation": "Privileged QueryCombatPiles; optionally execute native shuffle branch",
+      "vanilla_callsite": "Commands/CardPileCmd.cs:1007-1065,1073-1133",
+      "rng_and_context": "Current pile order is state; reshuffle uses RunState.Rng.Shuffle and Hook.ModifyShuffleOrder, with player/source context.",
+      "result": "Current draw order or exact post-shuffle order, visibility-tagged.",
+      "stop": "Query end, or settled native Shuffle without drawing a card.",
+      "gap": "Existing query fields provide some state but not a generalized result/cause trace."
+    },
+    {
+      "id": "combat_card_generation",
+      "rf_entrypoint": "RandomForeseerCode/InCombat/CombatCardPrediction.cs:104-133",
+      "operation": "UseCard/UsePotion or native trigger branch",
+      "vanilla_callsite": "Factories/CardFactory.cs:119-162",
+      "rng_and_context": "Exact caller/source, pool, dynamic count, player unlocks and CombatCardGeneration stream.",
+      "result": "Generated mutable card refs, order, pile and resulting choices.",
+      "stop": "Source operation settled or NeedsChoice.",
+      "gap": "Do not rebuild factory pools in the consumer."
+    },
+    {
+      "id": "card_draw_and_shuffle",
+      "rf_entrypoint": "README.en.md Card draw prediction; in-combat card prediction handlers",
+      "operation": "UseCard/UsePotion or other exact source action",
+      "vanilla_callsite": "Commands/CardPileCmd.cs:1007-1065,1073-1133",
+      "rng_and_context": "Source/target/count/fromHandDraw, hand and piles, Shuffle RNG/hooks and AfterCardDrawn hooks.",
+      "result": "Drawn refs in order and nested effects/choices.",
+      "stop": "Operation settled or next choice/decision.",
+      "gap": "A raw top-of-draw-pile query alone omits hooks and shuffles."
+    },
+    {
+      "id": "combat_card_selection",
+      "rf_entrypoint": "RandomForeseerCode/InCombat/CombatCardPrediction.cs:190-230; ChooseACardPredictionContext",
+      "operation": "UseCard/UsePotion plus native choice continuation",
+      "vanilla_callsite": "Commands/CardSelectCmd.cs:578-632 is a representative selector; exact source card/potion implements the operation.",
+      "rng_and_context": "Source, eligible refs/filter/order, min/max/manual confirmation, owner, actual RNG only if original selection is random.",
+      "result": "Native-random selected refs, or pending options for user choice.",
+      "stop": "NeedsChoice before continuation effects, or operation settled when source auto-selects.",
+      "gap": "Never substitute first valid/heuristic card for unresolved user choice."
+    },
+    {
+      "id": "orb_effect_targets",
+      "rf_entrypoint": "README.en.md Orb effect prediction; InCombat/CombatCardPrediction.cs",
+      "operation": "UseCard/UsePotion or exact turn trigger",
+      "vanilla_callsite": "Commands/OrbCmd.cs:68-153; Entities/Orbs/OrbQueue.cs; Models/OrbModel.cs",
+      "rng_and_context": "Source, player, queue/slots, target set and CombatTargets stream, hook context.",
+      "result": "Channel/evict/evoke order, targets, damage/healing and queue delta.",
+      "stop": "Source operation/turn hook settles, or NeedsChoice.",
+      "gap": "export_orbs is current state, not a future orb-effect operation."
+    },
+    {
+      "id": "combat_card_generation_potions",
+      "rf_entrypoint": "README.en.md random-card-generation potion feature",
+      "operation": "UsePotion",
+      "vanilla_callsite": "Models/Potions/AttackPotion.cs:24-31 (representative); CardFactory.cs:119-162",
+      "rng_and_context": "Potion instance, target player, pool/count/procurement rules and caller's CombatCardGeneration.",
+      "result": "Generated option refs/cards and possible selected result.",
+      "stop": "NeedsChoice when potion opens picker; otherwise potion operation end.",
+      "gap": "No auto-answer without source selection semantics."
+    },
+    {
+      "id": "potion_draw",
+      "rf_entrypoint": "README.en.md Potion draw prediction",
+      "operation": "UsePotion",
+      "vanilla_callsite": "Potion's original Use method into CardPileCmd.Draw/Shuffle at :1007-1133",
+      "rng_and_context": "Potion/source, target player, count, hand/piles/hooks and shuffle stream.",
+      "result": "Drawn instances/order and nested side effects.",
+      "stop": "Potion operation settled or choice.",
+      "gap": "Same native draw contract as cards; no separate mirror."
+    },
+    {
+      "id": "potion_generation",
+      "rf_entrypoint": "README.en.md Entropic Brew and Alchemize prediction",
+      "operation": "UsePotion or UseCard",
+      "vanilla_callsite": "Models/Potions/EntropicBrew.cs:26; Models/Cards/Alchemize.cs:24",
+      "rng_and_context": "Exact source and target player, slots, filters/procurement, CombatPotionGeneration.",
+      "result": "Generated potion(s), procurement/blocked result, slot delta and choices.",
+      "stop": "After original generation/procurement chain or choice.",
+      "gap": "Must keep the original stream and capacity rules."
+    },
+    {
+      "id": "draw_pile_autoplay",
+      "rf_entrypoint": "README.en.md draw-pile autoplay feature",
+      "operation": "UseCard/UsePotion",
+      "vanilla_callsite": "Commands/CardPileCmd.cs:1145-1180; CardCmd.AutoPlay at :51-97",
+      "rng_and_context": "Origin source, count, top/bottom/random position, forceExhaust, piles, shuffle and CombatCardSelection if random, AutoPlayType/target rules.",
+      "result": "Played card refs/order/targets, exhaustion and nested outcomes.",
+      "stop": "After original operation settles or choice.",
+      "gap": "Autoplay is part of source effects, not a standalone heuristic."
+    },
+    {
+      "id": "random_target_attack",
+      "rf_entrypoint": "README.en.md random-target attack feature",
+      "operation": "UseCard/UsePotion",
+      "vanilla_callsite": "Commands/Builders/AttackCommand.cs:603-617; Commands/CardCmd.cs:51-97",
+      "rng_and_context": "Source attack, allow-duplicates policy, hittable target set/order/filters and CombatTargets.",
+      "result": "Per-hit exact target/damage/death/hooks.",
+      "stop": "Source action completion, choice, or safe combat end.",
+      "gap": "Random target must be selected by original branch's native stream."
+    }
+  ],
+  "cross_cutting_risks": [
+    "RF is demand evidence, not game-rule authority; its combat/out-of-combat mirrors and partial model registries can diverge from vanilla.",
+    "Any unresolved player choice returns NeedsChoice and a continuable branch; do not substitute first-candidate selection.",
+    "Next-act and Crystal Sphere hidden board are privileged information and must not leak into ordinary RL observations.",
+    "Source RNG selection varies by original caller; a generic operation must preserve caller context rather than impose one stream."
+  ],
+  "baseline_api": {
+    "implemented": "Legal-action one-step owned preview, combat/run queries, v2 before/after projection, logical snapshot for supported simulator state.",
+    "references": [
+      "env/preview.cpp:32-58",
+      "env/run_queries.cpp:205-303",
+      "docs/env-preview-api.md:48-66"
+    ],
+    "gap": "No generic source-aware hypothetical operation for hover, no general native stop policy, and incomplete causal/result tracing and arbitrary real-game capture."
+  }
+}

@@ -1,0 +1,8 @@
+<Project>
+  <!-- Frozen historical consumers. They must not pull search-specific source
+       into the current vanilla Env / Random Foreseer API development. -->
+  <Target Name="RejectFrozenCombatSolverDevelopment" BeforeTargets="PrepareForBuild"
+          Condition="'$(MSBuildProjectName)' == 'CombatSolverEnv' Or '$(MSBuildProjectName)' == 'Sts2EnvCompare' Or '$(MSBuildProjectName)' == 'EnvCombatPredictionChecks' Or '$(MSBuildProjectName)' == 'EnvQueryChecks' Or '$(MSBuildProjectName)' == 'EnvLiveCardChecks' Or '$(MSBuildProjectName)' == 'EnvSessionChecks' Or '$(MSBuildProjectName)' == 'VoidFormChecks'">
+    <Error Text="This CombatSolver-dependent project is frozen. This directory is an archive; current development uses the vanilla Env and Random Foreseer API." />
+  </Target>
+</Project>

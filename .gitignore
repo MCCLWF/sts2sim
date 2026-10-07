@@ -1,0 +1,10 @@
+build/
+artifacts/
+.local/
+tools/**/.godot/
+tools/**/bin/
+tools/**/obj/
+sdk/**/bin/
+sdk/**/obj/
+__pycache__/
+.venv/

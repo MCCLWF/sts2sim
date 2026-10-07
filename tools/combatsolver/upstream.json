@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/Torch1230/CombatSolver.git",
+  "commit": "9a4489d840a3772aef451d5c6dc42dd79719f380",
+  "version": "0.50.0",
+  "checkout": "artifacts/combatsolver-0500-latest/source",
+  "purpose": "Offline NoSL teacher and search diagnostics; native C++ search is versioned separately."
+}

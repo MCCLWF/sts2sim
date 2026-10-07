@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveCards.cs" Link="EnvLiveCards.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvModelCatalog.cs" Link="EnvModelCatalog.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveMonsters.cs" Link="EnvLiveMonsters.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveRunContext.cs" Link="EnvLiveRunContext.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveCollections.cs" Link="EnvLiveCollections.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveCreatures.cs" Link="EnvLiveCreatures.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveInventory.cs" Link="EnvLiveInventory.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveCombatContext.cs" Link="EnvLiveCombatContext.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveRoomContext.cs" Link="EnvLiveRoomContext.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/EnvLiveRootAssembler.cs" Link="EnvLiveRootAssembler.cs" />
+    <Compile Include="../Sts2Oracle/SingleThreadContext.cs" Link="SingleThreadContext.cs" />
+    <Compile Include="../Sts2EnvCompare/Entry.cs" Link="Entry.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/NativeCombatPrediction.cs" Link="NativeCombatPrediction.cs" />
+    <Compile Include="../CombatSolverEnv/Api/*.cs" Link="Api/%(Filename)%(Extension)" />
+    <Compile Include="../Sts2Headless/*.cs" LinkBase="Headless" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="all" />
+    <Publicize Include="sts2" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+    <Reference Include="sts2" HintPath="$(GameData)/sts2.dll" />
+    <Reference Include="GodotSharp" HintPath="$(GameData)/GodotSharp.dll" />
+    <Reference Include="0Harmony" HintPath="$(GameData)/0Harmony.dll" />
+  </ItemGroup>
+  <Target Name="PrepareCardCatalog" BeforeTargets="AssignTargetPaths;CoreCompile">
+    <Exec Command="python3 &quot;$(MSBuildProjectDirectory)/../CombatSolverEnv/prepare_card_catalog.py&quot; &quot;$(MSBuildProjectDirectory)/../..&quot; &quot;$(IntermediateOutputPath)CardCatalog.g.json&quot;" />
+    <ItemGroup>
+      <EmbeddedResource Include="$(IntermediateOutputPath)CardCatalog.g.json" LogicalName="CombatSolverEnv.CardCatalog.json" />
+    </ItemGroup>
+  </Target>
+  <Target Name="CopyEnvLibrary" AfterTargets="Build">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/../../build/libsts2env_c.so" DestinationFolder="$(TargetDir)" />
+  </Target>
+</Project>

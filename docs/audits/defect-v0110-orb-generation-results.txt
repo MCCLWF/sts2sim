@@ -1,0 +1,7 @@
+PASS DISCOVERY policies=1,2,3 states=37/37 actions=28 choices=14
+PASS CHAOS_00 policies=1,2 states=28/28 actions=22
+PASS CHAOS_01 policies=1,2 states=28/28 actions=22
+PASS CHAOS_02 policies=1,2 states=27/27 actions=21
+PASS CHAOS_03 policies=1,2 states=28/28 actions=22
+PASS TRASH_TO_TREASURE_STATUS policies=1,2,3 states=47/47 actions=38
+Defect orb generation: 6/6 cases matched; states=195/195; runs=14; candidate_orbs=DARK_ORB,FROST_ORB,GLASS_ORB,LIGHTNING_ORB,PLASMA_ORB

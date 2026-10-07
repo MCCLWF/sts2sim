@@ -1,0 +1,4 @@
+PASS ESSENCE_OF_DARKNESS policies=1,2 states=15/15
+PASS FOCUS_POTION policies=1,2 states=17/17
+PASS POTION_OF_CAPACITY policies=1,2 states=15/15
+Defect potions: 3/3 matched; states=47/47

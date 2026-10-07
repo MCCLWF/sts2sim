@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CombatSolverSource Condition="'$(CombatSolverSource)' == ''">$(MSBuildProjectDirectory)/../../external/CombatSolver</CombatSolverSource>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(CombatSolverSource)/src/Runtime/EnvBridge/*.cs" Link="EnvBridge/%(Filename)%(Extension)" />
+    <Compile Include="../Sts2Headless/*.cs" LinkBase="Headless" />
+    <!-- The truth oracle's combat driver; this tool attaches the live capture to its state lines. -->
+    <Compile Include="../Sts2Oracle/*.cs" Exclude="../Sts2Oracle/Program.cs" LinkBase="Oracle" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="all" />
+    <Publicize Include="sts2" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+    <Reference Include="sts2" HintPath="$(GameData)/sts2.dll" />
+    <Reference Include="GodotSharp" HintPath="$(GameData)/GodotSharp.dll" />
+    <Reference Include="0Harmony" HintPath="$(GameData)/0Harmony.dll" />
+  </ItemGroup>
+  <Target Name="PrepareCatalog" BeforeTargets="AssignTargetPaths;CoreCompile">
+    <Exec Command="python3 &quot;$(CombatSolverSource)/tools/prepare-env-catalog.py&quot; &quot;$(MSBuildProjectDirectory)/../..&quot; &quot;$(IntermediateOutputPath)EnvCatalog.g.json&quot;" />
+    <ItemGroup><EmbeddedResource Include="$(IntermediateOutputPath)EnvCatalog.g.json" LogicalName="CombatSolverEnv.CardCatalog.json" /></ItemGroup>
+  </Target>
+  <Target Name="CopyNative" AfterTargets="Build"><Copy SourceFiles="../../build/libsts2solver.so" DestinationFolder="$(TargetDir)" /></Target>
+</Project>

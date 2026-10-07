@@ -1,0 +1,379 @@
+#!/usr/bin/env python3
+"""Generate the dispatch of overridable members to ported concrete models.
+
+Inputs:
+  game/Models/<Base>.def        member signatures (tools/gen/gen_members.py)
+  game/Models/<Kind>s/*.h       ported concrete models: `struct X : Base {`
+  data/content.json             which members each C# class overrides
+
+Outputs:
+  game/generated/AllModels.h    includes every ported concrete model
+  game/generated/Dispatch.cpp   one function per member: a switch over the
+                                ported classes that override it, then
+                                Unported for unported overriders, then the
+                                base default.
+
+Usage: tools/gen/gen_dispatch.py
+"""
+import json
+import argparse
+import os
+import re
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SRC = os.environ.get("STS2_SRC", os.path.join(ROOT, "..", "Slay the Spire 2", "src", "Core"))
+MODELS = os.path.join(ROOT, "game", "Models")
+OUT = os.path.join(ROOT, "game", "generated")
+CONTENT = os.path.join(ROOT, "data", "content.json")
+
+# C# model kind (content.json "kind") -> (ModelKind, id enum, source folder, C++ base handle)
+KINDS = {
+    "CardModel": ("Card", "CardId", "Cards", "CardModel"),
+    "PowerModel": ("Power", "PowerId", "Powers", "PowerModel"),
+    "MonsterModel": ("Monster", "MonsterId", "Monsters", "MonsterModel"),
+    "RelicModel": ("Relic", "RelicId", "Relics", "RelicModel"),
+    "PotionModel": ("Potion", "PotionId", "Potions", "PotionModel"),
+    "EnchantmentModel": ("Enchantment", "EnchantmentId", "Enchantments", "EnchantmentModel"),
+    "AfflictionModel": ("Affliction", "AfflictionId", "Afflictions", "AfflictionModel"),
+    "OrbModel": ("Orb", "OrbId", "Orbs", "OrbModel"),
+    "ModifierModel": ("Modifier", "ModifierId", "Modifiers", "ModifierModel"),
+    "EncounterModel": ("Encounter", "EncounterId", "Encounters", "EncounterModel"),
+    # Both event kinds dispatch through the EventModel handle (AncientEventModel's
+    # own overrides are part of EventModel.cpp).
+    "EventModel": ("Event", "EventId", "Events", "EventModel"),
+    "AncientEventModel": ("Event", "EventId", "Events", "EventModel"),
+}
+BASE_KIND = {v[3]: k for k, v in KINDS.items()}
+# C# can reuse a class name in different model namespaces. C++ keeps all
+# concrete models in sts2, so these two types need distinct C++ names.
+CPP_ALIASES = {("MonsterModel", "Byrdpip"): "ByrdpipMonster",
+               ("RelicModel", "Byrdpip"): "ByrdpipRelic",
+               ("MonsterModel", "PaelsLegion"): "PaelsLegionMonster",
+               ("RelicModel", "PaelsLegion"): "PaelsLegionRelic",
+               ("RelicModel", "LostWisp"): "LostWispRelic"}
+SOURCE_NAMES = {(kind, cpp): source for (kind, source), cpp in CPP_ALIASES.items()}
+
+# Guarded C# hooks whose C++ signature is represented by a normal subsystem
+# operation instead of an AbstractModel method. Each entry must point to an
+# explicit implementation that still rejects every other unsupported hook.
+MANUAL_GUARDED_PORTS = {
+    ("CardModel", "ByrdonisEgg", "AbstractModel.TryModifyRestSiteOptions"),  # RestSiteOption.cpp::Generate
+    ("RelicModel", "PaelsWing", "AbstractModel.TryModifyCardRewardAlternatives"),  # Reward.cpp::GenerateAlternatives
+    ("RelicModel", "Girya", "AbstractModel.TryModifyRestSiteOptions"),  # RestSiteOption.cpp::Generate
+    ("RelicModel", "Shovel", "AbstractModel.TryModifyRestSiteOptions"),  # RestSiteOption.cpp::Generate
+    ("RelicModel", "PumpkinCandle", "AbstractModel.TryModifyRestSiteOptions"),  # RestSiteOption.cpp::Generate
+    ("RelicModel", "PaelsGrowth", "AbstractModel.TryModifyRestSiteOptions"),  # RestSiteOption.cpp::Generate
+    ("RelicModel", "MeatCleaver", "AbstractModel.TryModifyRestSiteOptions"),  # RestSiteOption.cpp::Generate
+}
+
+# HealRestSiteOption.Description is the sole caller in v0.111.0; it only
+# formats LocString tooltip text and cannot change a simulated decision or
+# state. The Env does not construct this presentation description.
+COSMETIC_ONLY_HOOKS = {"AbstractModel.ModifyExtraRestSiteHealText"}
+
+# EncounterModel.SaveCustomState/LoadCustomState are represented by the
+# complete POD snapshot traversal. BattlewornDummyEventEncounter's sole
+# custom value is CombatData::battleworn_dummy_ran_out_of_time; the timeout
+# power updates it and the event's Resume reads the exited room's copy.
+MANUAL_STATE_PORTS = {
+    ("EncounterModel", cls, f"EncounterModel.{member}")
+    for cls in ("BattlewornDummyEventV1Encounter", "BattlewornDummyEventV2Encounter",
+                "BattlewornDummyEventV3Encounter")
+    for member in ("SaveCustomState", "LoadCustomState")
+}
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gen_content import MACRO_NAMES  # noqa: E402  (the id enums' identifier rule)
+from execution_signatures import resolve as resolve_signature, capture_arguments
+
+HEADER = "// GENERATED by tools/gen/gen_dispatch.py. Do not edit.\n"
+
+
+def split_args(s):
+    """Split the top-level comma-separated arguments of a macro call body."""
+    out, depth, cur = [], 0, ""
+    for ch in s:
+        if ch in "({[<":
+            depth += 1
+        elif ch in ")}]>":
+            depth -= 1
+        if ch == "," and depth == 0:
+            out.append(cur.strip())
+            cur = ""
+        else:
+            cur += ch
+    out.append(cur.strip())
+    return out
+
+
+def read_members(base):
+    path = os.path.join(MODELS, base + ".def")
+    members = []
+    for line in open(path, encoding="utf-8"):
+        m = re.match(r"(SIM_MEMBER(?:_CUSTOM)?)\((.*)\)\s*$", line.strip())
+        if not m:
+            continue
+        b, ret, name, params, args, default = split_args(m.group(2))
+        members.append(dict(macro=m.group(1), base=b, ret=ret, name=name, params=params, args=args, default=default))
+    return members
+
+
+# CardModel.OnUpgrade bodies made only of these statements are fully covered
+# by the upgrade-level tables that CardModel::UpgradeInternal applies.
+DELTA_STMT = re.compile(r"(base\.)?(DynamicVars(\.\w+|\[\"\w+\"\])\.UpgradeValueBy\(-?[\d.]+m\)"
+                        r"|EnergyCost\.UpgradeBy\(-?\d+\)"
+                        r"|(Add|Remove)Keyword\(CardKeyword\.\w+\));")
+
+
+def delta_only_on_upgrade(source):
+    """True when the C# class's OnUpgrade only applies table deltas."""
+    path = os.path.join(SRC, source)
+    if not os.path.exists(path):
+        return False
+    text = open(path, encoding="utf-8").read()
+    m = re.search(r"protected override void OnUpgrade\(\)\s*\n\t\{\n(.*?)\n\t\}", text, re.S)
+    if not m:
+        return False
+    stmts = [l.strip() for l in m.group(1).splitlines() if l.strip()]
+    return all(DELTA_STMT.fullmatch(st) for st in stmts)
+
+
+def class_body(header_text, cls):
+    m = re.search(r"^(?:struct|class) %s\b.*?^\};" % re.escape(cls), header_text, re.S | re.M)
+    return m.group(0) if m else header_text
+
+
+def declares(header_text, cls, name):
+    """Whether the class body in the header declares member `name`."""
+    body = class_body(header_text, cls)
+    return re.search(r"(?<!SIM_NOT_PORTED\()\b%s\s*\(" % re.escape(name), body) is not None
+
+
+def not_ported(header_text, cls, name):
+    """Whether the class lists `name` as deliberately left unported: SIM_NOT_PORTED(Name)."""
+    return re.search(r"SIM_NOT_PORTED\(\s*%s\s*\)" % re.escape(name), class_body(header_text, cls)) is not None
+
+
+def id_enum_name(model_id):
+    """The id enumerator (tools/gen/gen_content.py ident)."""
+    s = re.sub(r"[^A-Za-z0-9_]", "_", model_id.split(".", 1)[1])
+    if not s or s[0].isdigit():
+        s = "_" + s
+    return s + "_" if s in MACRO_NAMES else s
+
+
+def member_enums():
+    text = open(os.path.join(ROOT, "content", "generated", "members.h"), encoding="utf-8").read()
+    return set(re.findall(r"^    (\w+),  //", text, re.M))
+
+
+def main(check=False):
+    def publish(name, text):
+        path=os.path.join(OUT,name)
+        if check:
+            if open(path,encoding="utf-8").read()!=text:
+                raise SystemExit(f"Generated {name} changed; run tools/gen/gen_dispatch.py")
+        else:
+            with open(path,"w",encoding="utf-8") as output:output.write(text)
+    data = json.load(open(CONTENT, encoding="utf-8"))
+    enums = member_enums()
+    # (C# model kind, class name) -> (id, overrides)
+    by_class = {}
+    delta_upgrade = set()  # classes whose OnUpgrade is covered by the tables
+    for m in data["models"]:
+        if m["kind"] not in KINDS or m["id"].split(".", 1)[1].startswith("MOCK_"):
+            continue
+        cls = m["type"].split(".")[-1]
+        overrides = set()
+        for o in m.get("overrides", []):
+            overrides.add(o.split(" ")[0])  # "AbstractModel.AfterAttack (via X)" -> "AbstractModel.AfterAttack"
+        by_class[(m["kind"], cls)] = (m["id"], overrides)
+        if m["kind"] == "CardModel" and "CardModel.OnUpgrade" in overrides and delta_only_on_upgrade(m.get("source", "")):
+            delta_upgrade.add(cls)
+
+    # Ported concrete classes: headers under game/Models/<Folder>/ defining a model class.
+    ported = []  # (kind, class, id, header)
+    for kind, (_, _, folder, _) in KINDS.items():
+        d = os.path.join(MODELS, folder)
+        if not os.path.isdir(d):
+            continue
+        for fn in sorted(os.listdir(d)):
+            if not fn.endswith(".h"):
+                continue
+            text = open(os.path.join(d, fn), encoding="utf-8").read()
+            for cls in re.findall(r"^(?:struct|class) (\w+)\s*(?:final\s*)?:", text, re.M):
+                source_cls = SOURCE_NAMES.get((kind, cls), cls)
+                if (kind, source_cls) in by_class:
+                    ported.append((kind, cls, by_class[(kind, source_cls)][0], "game/Models/%s/%s" % (folder, fn)))
+
+    os.makedirs(OUT, exist_ok=True)
+    headers = sorted({p[3] for p in ported})
+    header_texts = {h: open(os.path.join(ROOT, h), encoding="utf-8").read() for h in headers}
+    publish("AllModels.h",HEADER+"#pragma once\n\n"+"".join('#include "%s"\n' % h for h in headers))
+
+    out = [HEADER, '#include "game/All.h"', '#include "game/generated/AllModels.h"', '#include "game/Models/AbstractModel.h"',
+           '#include "game/Models/CardModel.h"', '#include "game/Models/PowerModel.h"',
+           '#include "game/Models/MonsterModel.h"', '#include "game/Models/RelicModel.h"',
+           '#include "game/Models/PotionModel.h"', '#include "game/Models/EncounterModel.h"',
+           '#include "game/Models/EventModel.h"', '#include "game/Models/ModelExecutionScope.h"', "",
+           "namespace sts2 {", ""]
+    bases = ["AbstractModel"] + list(dict.fromkeys(v[3] for v in KINDS.values()
+                                                   if os.path.exists(os.path.join(MODELS, v[3] + ".def"))))
+    counts = {}
+    for base in bases:
+        for mem in read_members(base):
+            key = "%s.%s" % (base, mem["name"])
+            key_get = "%s.get_%s" % (base, mem["name"])
+            cases = {}
+            ported_classes = set()
+            for kind, cls, mid, header in ported:
+                if base != "AbstractModel" and KINDS[kind][3] != base:
+                    continue
+                ported_classes.add(cls)
+                ov = by_class[(kind, SOURCE_NAMES.get((kind, cls), cls))][1]
+                if key in ov or key_get in ov:
+                    if key == "CardModel.OnUpgrade" and cls in delta_upgrade and \
+                            not declares(header_texts[header], cls, mem["name"]):
+                        continue  # handled below with the unported delta-only classes
+                    if not declares(header_texts[header], cls, mem["name"]):
+                        if not_ported(header_texts[header], cls, mem["name"]):
+                            continue  # falls through to Unported
+                        raise SystemExit("%s overrides %s in C# but %s neither declares it nor lists it in "
+                                         "SIM_NOT_PORTED" % (cls, key, header))
+                    cases.setdefault(kind, []).append((cls, mid))
+            # OnUpgrade covered by the tables: the default (nothing more to do),
+            # for ported and unported classes alike.
+            skip_cases = []
+            if key == "CardModel.OnUpgrade":
+                declared = {c for c, _ in cases.get("CardModel", [])}
+                skip_cases = sorted(by_class[("CardModel", c)][0] for c in delta_upgrade if c not in declared)
+            counts[base] = counts.get(base, 0) + sum(len(v) for v in cases.values())
+            ret = mem["ret"]
+            ret_kw = "return " if ret != "void" else ""
+            out.append("%s %s::%s%s const {" % (ret, base, mem["name"], mem["params"]))
+            member_enum = "%s_%s" % (base, mem["name"])
+            if member_enum not in enums:
+                member_enum = "%s_get_%s" % (base, mem["name"])
+            if member_enum not in enums:
+                raise SystemExit("no Member enum for %s.%s" % (base, mem["name"]))
+            out.append('    ModelExecutionScope execution(sim_, *this, Member::%s, "%s");' % (member_enum, key))
+            body_start=len(out)
+            if cases:
+                if base == "AbstractModel":
+                    out.append("    switch (kind_) {")
+                    for kind, lst in cases.items():
+                        mk, idenum, _, _ = KINDS[kind]
+                        out.append("    case ModelKind::%s:" % mk)
+                        out.append("        switch (static_cast<%s>(DenseId())) {" % idenum)
+                        for cls, mid in lst:
+                            call = "Rebind<%s>().%s%s" % (cls, mem["name"], mem["args"])
+                            out.append("        case %s::%s: %s%s;%s" % (idenum, id_enum_name(mid), ret_kw, call,
+                                                                          " return;" if ret == "void" else ""))
+                        out.append("        default: break;")
+                        out.append("        }")
+                        out.append("        break;")
+                    out.append("    default: break;")
+                    out.append("    }")
+                else:
+                    kind = BASE_KIND[base]
+                    mk, idenum, _, _ = KINDS[kind]
+                    out.append("    switch (static_cast<%s>(DenseId())) {" % idenum)
+                    for cls, mid in [c for k, lst in cases.items() for c in lst]:
+                        call = "Rebind<%s>().%s%s" % (cls, mem["name"], mem["args"])
+                        out.append("    case %s::%s: %s%s;%s" % (idenum, id_enum_name(mid), ret_kw, call,
+                                                                  " return;" if ret == "void" else ""))
+                    out.append("    default: break;")
+                    out.append("    }")
+            if skip_cases:
+                out.append("    switch (static_cast<CardId>(DenseId())) {")
+                for mid in skip_cases:
+                    out.append("    case CardId::%s:" % id_enum_name(mid))
+                out.append("        return;  // OnUpgrade only applies table deltas")
+                out.append("    default: break;")
+                out.append("    }")
+            out.append("    if (Overrides(Member::%s)) throw_unported(*this, \"%s\");" % (member_enum, mem["name"]))
+            d = mem["default"]
+            if d == "SIM_ABSTRACT":
+                out.append("    throw_unported(*this, \"%s (abstract)\");" % mem["name"])
+            elif d == "SIM_DEFAULT_IMPL":
+                out.append("    %s%s_Default%s;" % (ret_kw, mem["name"], mem["args"]))
+            else:
+                body = d[1:-1].strip()
+                if body:
+                    out.append("    " + body)
+            arguments=[a.strip() for a in split_args(mem["args"][1:-1]) if a.strip()]
+            binding=resolve_signature(base,mem["name"],arguments)
+            body=out[body_start:]
+            out[body_start:]=['    return execution.Invoke("%s", [&]() -> %s {' % (binding["returns"],ret)]
+            out.extend("    "+line if line else line for line in body)
+            out.append('    }, [&]() { return std::vector<ExecutionArgument>%s; },' % capture_arguments(binding))
+            out.append('       [&]() { return std::vector<ExecutionArgument>%s; });' % capture_arguments(binding,after=True))
+            out.append("}")
+            out.append("")
+    # IsUsable(kind, id): the model can be used without reaching Unported: none
+    # of the members it overrides in C# (generated or guarded) is left
+    # unported. Agents and the smoke test use it to stay within ported content.
+    header_of = {(kind, SOURCE_NAMES.get((kind, cls), cls)): (header, cls)
+                 for kind, cls, _, header in ported}
+    # The members that can reach Unported: the dispatched ones (.def) and the
+    # guarded ones (listed as "Not generated yet" in the .def files).
+    reachable = set()
+    for base in bases:
+        for mem in read_members(base):
+            reachable.add("%s.%s" % (base, mem["name"]))
+            reachable.add("%s.get_%s" % (base, mem["name"]))
+        for line in open(os.path.join(MODELS, base + ".def"), encoding="utf-8"):
+            g = re.match(r"//\s+\S.*?\s(\w+)\(", line)
+            if g and not line.startswith("// SIM_") and not line.startswith("// GENERATED"):
+                hook = "%s.%s" % (base, g.group(1))
+                if hook not in COSMETIC_ONLY_HOOKS:
+                    reachable.add(hook)
+    usable = {}
+    for (kind, cls), (mid, ov) in sorted(by_class.items()):
+        header, cpp_cls = header_of.get((kind, cls), (None, cls))
+        text = header_texts.get(header, "") if header else ""
+        ok = True
+        for o in ov:
+            b, name = o.split(".", 1)
+            if o not in reachable:
+                continue  # not dispatched (table-driven or cosmetic)
+            if (kind, cls, o) in MANUAL_GUARDED_PORTS or (kind, cls, o) in MANUAL_STATE_PORTS:
+                continue
+            if o == "CardModel.OnUpgrade" and cls in delta_upgrade:
+                continue
+            nm = name[4:] if name.startswith("get_") else name
+            if header and declares(text, cpp_cls, nm) and not not_ported(text, cpp_cls, nm):
+                continue
+            ok = False
+            break
+        if ok:
+            usable.setdefault(KINDS[kind][0], []).append(mid)
+    out.append("bool IsUsable(ModelKind kind, uint16_t id) {")
+    out.append("    switch (kind) {")
+    for kind, (mk, idenum, _, _) in KINDS.items():
+        if kind == "AncientEventModel":
+            continue
+        ids = sorted(set(usable.get(mk, [])))
+        out.append("    case ModelKind::%s:" % mk)
+        if ids:
+            out.append("        switch (static_cast<%s>(id)) {" % idenum)
+            for mid in ids:
+                out.append("        case %s::%s:" % (idenum, id_enum_name(mid)))
+            out.append("            return true;")
+            out.append("        default: return false;")
+            out.append("        }")
+        else:
+            out.append("        return false;")
+    out.append("    default: return false;")
+    out.append("    }")
+    out.append("}")
+    out.append("")
+    out.append("}  // namespace sts2")
+    publish("Dispatch.cpp","\n".join(out)+"\n")
+    print("ported models: %d; dispatch cases: %s; delta-only OnUpgrade: %d" % (len(ported), counts, len(delta_upgrade)))
+
+
+if __name__ == "__main__":
+    parser=argparse.ArgumentParser();parser.add_argument("--check",action="store_true")
+    main(check=parser.parse_args().check)

@@ -1,0 +1,12 @@
+{
+  "id": "CombatSolverEnv",
+  "name": "CombatSolver Env 开发版",
+  "author": "Torch / sts2sim",
+  "description": "原生 CombatSolver 搜索源码与 sts2sim Env 预测、比较接口的派生开发版。完整 Env 后端接入尚未完成。",
+  "version": "0.46.4",
+  "has_pck": false,
+  "has_dll": true,
+  "affects_gameplay": true,
+  "min_game_version": "0.111.0",
+  "dependencies": [{ "id": "STS2-RitsuLib", "min_version": "0.6.0" }]
+}

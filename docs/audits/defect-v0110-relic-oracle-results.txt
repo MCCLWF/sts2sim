@@ -1,0 +1,9 @@
+PASS CRACKED_CORE policies=1,2 states=10/10 choices=0/0
+PASS DATA_DISK policies=1,2 states=18/18 choices=0/0
+PASS EMOTION_CHIP policies=1,2 states=10/10 choices=0/0
+PASS GOLD_PLATED_CABLES policies=1,2 states=14/14 choices=0/0
+PASS POWER_CELL policies=1,2 states=18/18 choices=0/0
+PASS METRONOME policies=1,2 states=8/8 choices=0/0
+PASS RUNIC_CAPACITOR policies=1,2 states=16/16 choices=0/0
+PASS SYMBIOTIC_VIRUS policies=1,2 states=14/14 choices=0/0
+Defect relic pool: 8/8 matched

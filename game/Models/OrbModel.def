@@ -1,0 +1,6 @@
+SIM_MEMBER(OrbModel, sts2::Dec, PassiveVal, (), (), SIM_ABSTRACT)
+SIM_MEMBER(OrbModel, sts2::Dec, EvokeVal, (), (), SIM_ABSTRACT)
+SIM_MEMBER(OrbModel, void, BeforeTurnEndOrbTrigger, (sts2::PlayerChoiceContext& choiceContext), (choiceContext), {})
+SIM_MEMBER(OrbModel, void, AfterTurnStartOrbTrigger, (sts2::PlayerChoiceContext& choiceContext), (choiceContext), {})
+SIM_MEMBER(OrbModel, void, Passive, (sts2::PlayerChoiceContext& choiceContext, sts2::Creature target), (choiceContext, target), {})
+SIM_MEMBER(OrbModel, sts2::CreatureList, Evoke, (sts2::PlayerChoiceContext& choiceContext), (choiceContext), { return {}; })

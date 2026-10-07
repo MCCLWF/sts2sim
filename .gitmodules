@@ -1,0 +1,3 @@
+[submodule "external/CombatSolver"]
+	path = external/CombatSolver
+	url = https://github.com/Torch1230/CombatSolver.git

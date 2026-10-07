@@ -1,0 +1,6 @@
+# Property getters (DeclaringType.Property) that call into the Godot engine and
+# therefore crash the exporter's headless process. Generated/extended by
+# find_native_getters.sh; safe to edit by hand.
+ActModel.DefeatedAllEnemiesAchievement
+AfflictionModel.HasOverlay
+CharacterModel.RunWonAchievement

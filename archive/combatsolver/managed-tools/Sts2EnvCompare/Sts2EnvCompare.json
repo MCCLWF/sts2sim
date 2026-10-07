@@ -1,0 +1,14 @@
+{
+  "id": "Sts2EnvCompare",
+  "name": "sts2sim 战士双求解器对比",
+  "author": "sts2sim",
+  "description": "在单人战士战斗中运行 sts2sim Env，与 CombatSolver 对比搜索，并在 Env 模式安全执行首动作。",
+  "version": "0.1.0",
+  "has_pck": false,
+  "has_dll": true,
+  "affects_gameplay": true,
+  "min_game_version": "0.111.0",
+  "dependencies": [
+    { "id": "CombatSolver", "min_version": "0.40.0" }
+  ]
+}

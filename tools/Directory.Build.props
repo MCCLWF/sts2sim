@@ -1,0 +1,20 @@
+<Project>
+  <!--
+    Where the .NET tools find the game. Imported by every project under tools/.
+    Override with the environment variables STS2_GAME_DIR (the game install
+    directory) and STS2_SRC (the decompiled src/Core tree), or per build with
+    -p:GameData=<data dir> / -p:GameSrc=<src/Core>.
+  -->
+  <PropertyGroup>
+    <Sts2GameDir Condition="'$(Sts2GameDir)' == ''">$(STS2_GAME_DIR)</Sts2GameDir>
+    <Sts2GameDir Condition="'$(Sts2GameDir)' == ''">$(HOME)/snap/steam/common/.local/share/Steam/steamapps/common/Slay the Spire 2</Sts2GameDir>
+    <GameData Condition="'$(GameData)' == ''">$(Sts2GameDir)/data_sts2_linuxbsd_x86_64</GameData>
+    <GameSrc Condition="'$(GameSrc)' == ''">$(STS2_SRC)</GameSrc>
+    <GameSrc Condition="'$(GameSrc)' == ''">$(MSBuildThisFileDirectory)../../Slay the Spire 2/src/Core</GameSrc>
+  </PropertyGroup>
+  <!-- Baked into each tool so it finds the game at run time without flags. -->
+  <ItemGroup>
+    <AssemblyMetadata Include="Sts2GameData" Value="$(GameData)" />
+    <AssemblyMetadata Include="Sts2GameSrc" Value="$(GameSrc)" />
+  </ItemGroup>
+</Project>

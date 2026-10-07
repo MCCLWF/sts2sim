@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Golden-vector generator. Compiles the game's own RNG/shuffle sources verbatim
+    (from the decompiled tree) with minimal stubs, and uses the game's shipped
+    System.IO.Hashing.dll, so the vectors are the ground truth for sts2sim/core.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(GameSrc)/Random/MegaRandom.cs" Link="Game/MegaRandom.cs" />
+    <Compile Include="$(GameSrc)/Random/Rng.cs" Link="Game/Rng.cs" />
+    <Compile Include="$(GameSrc)/Extensions/ListExtensions.cs" Link="Game/ListExtensions.cs" />
+    <Compile Include="$(GameSrc)/Models/ModelId.cs" Link="Game/ModelId.cs" />
+    <Compile Include="$(GameSrc)/Entities/Rngs/RunRngType.cs" Link="Game/RunRngType.cs" />
+    <Compile Include="$(GameSrc)/Entities/Rngs/PlayerRngType.cs" Link="Game/PlayerRngType.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.IO.Hashing">
+      <HintPath>$(GameData)/System.IO.Hashing.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

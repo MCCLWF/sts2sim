@@ -1,0 +1,50 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>13.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>true</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <AssemblyName>CombatSolverEnv</AssemblyName>
+    <RootNamespace>CombatSolver</RootNamespace>
+    <Version>0.46.4</Version>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <UpstreamDir>$(MSBuildProjectDirectory)/../../external/CombatSolver</UpstreamDir>
+    <SteamRoot Condition="'$(SteamRoot)' == ''">$(HOME)/snap/steam/common/.local/share/Steam</SteamRoot>
+    <Sts2Dir Condition="'$(Sts2Dir)' == ''">$(SteamRoot)/steamapps/common/Slay the Spire 2</Sts2Dir>
+    <Sts2DataDir Condition="'$(Sts2DataDir)' == ''">$(Sts2Dir)/data_sts2_linuxbsd_x86_64</Sts2DataDir>
+    <RitsuWorkshopRoot Condition="'$(RitsuWorkshopRoot)' == ''">$(SteamRoot)/steamapps/workshop/content/2868840/3747602295</RitsuWorkshopRoot>
+    <RitsuLibReferenceTarget>0.111.0</RitsuLibReferenceTarget>
+    <RitsuLibReferencesProps>$(RitsuWorkshopRoot)/RitsuLib.References.props</RitsuLibReferencesProps>
+    <CopyModOnBuild Condition="'$(CopyModOnBuild)' == ''">false</CopyModOnBuild>
+    <ModOutputDir Condition="'$(ModOutputDir)' == ''">$(Sts2Dir)/mods/CombatSolverEnv</ModOutputDir>
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+  </PropertyGroup>
+  <Import Project="$(RitsuLibReferencesProps)" Condition="Exists('$(RitsuLibReferencesProps)')" />
+  <ItemGroup>
+    <Compile Include="$(UpstreamDir)/src/**/*.cs" Exclude="$(UpstreamDir)/src/Runtime/Entry.cs;$(UpstreamDir)/src/Runtime/CombatRootSnapshot.cs;$(UpstreamDir)/src/Search/CombatPlan.cs;$(UpstreamDir)/src/Search/CombatBeamSolver.Expansion.Replay.cs;$(UpstreamDir)/src/Search/CombatBeamSolver.RoundTransition.cs;$(UpstreamDir)/src/Search/CombatBeamSolver.TurnExecutionContinuation.cs;$(UpstreamDir)/src/Search/CombatBeamSolver.Phases.cs;$(UpstreamDir)/src/UI/SolverSettingsPanel.General.cs" />
+    <Compile Include="../Sts2EnvCompare/Entry.cs" />
+    <Compile Include="Runtime/*.cs;Search/*.cs;Api/*.cs;UI/*.cs" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="all" />
+    <Publicize Include="sts2" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+    <Reference Include="sts2" HintPath="$(Sts2DataDir)/sts2.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(Sts2DataDir)/0Harmony.dll" Private="false" />
+    <Reference Include="GodotSharp" HintPath="$(Sts2DataDir)/GodotSharp.dll" Private="false" />
+  </ItemGroup>
+  <Target Name="PrepareDerivedEntry" BeforeTargets="AssignTargetPaths;CoreCompile">
+    <Exec Command="python3 &quot;$(MSBuildProjectDirectory)/prepare_entry.py&quot; &quot;$(UpstreamDir)/src/Runtime/Entry.cs&quot; &quot;$(IntermediateOutputPath)CombatSolver.Entry.g.cs&quot;" />
+    <Exec Command="python3 &quot;$(MSBuildProjectDirectory)/prepare_sources.py&quot; &quot;$(UpstreamDir)&quot; &quot;$(IntermediateOutputPath)EnvIntegration&quot;" />
+    <Exec Command="python3 &quot;$(MSBuildProjectDirectory)/prepare_card_catalog.py&quot; &quot;$(MSBuildProjectDirectory)/../..&quot; &quot;$(IntermediateOutputPath)EnvIntegration/CardCatalog.g.json&quot;" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)CombatSolver.Entry.g.cs" />
+      <Compile Include="$(IntermediateOutputPath)EnvIntegration/*.g.cs" />
+      <EmbeddedResource Include="$(IntermediateOutputPath)EnvIntegration/English.g.json" LogicalName="CombatSolver.UI.English.json" />
+      <EmbeddedResource Include="$(IntermediateOutputPath)EnvIntegration/CardCatalog.g.json" LogicalName="CombatSolverEnv.CardCatalog.json" />
+    </ItemGroup>
+  </Target>
+  <Target Name="CopyDerivedMod" AfterTargets="Build" Condition="'$(CopyModOnBuild)' == 'true'">
+    <MakeDir Directories="$(ModOutputDir)" />
+    <Copy SourceFiles="$(TargetPath);$(MSBuildProjectDirectory)/CombatSolverEnv.json;$(MSBuildProjectDirectory)/../../build/libsts2env_c.so;$(UpstreamDir)/LICENSE;$(UpstreamDir)/THIRD_PARTY_NOTICES.md" DestinationFolder="$(ModOutputDir)" />
+  </Target>
+</Project>

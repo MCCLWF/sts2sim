@@ -1,0 +1,12 @@
+{
+  "id": "Sts2LiveDiff",
+  "name": "sts2sim 实机对拍",
+  "author": "sts2sim",
+  "description": "记录正版游戏玩家动作，使用相同动作推进 C++ Env 并输出差异。",
+  "version": "0.1.0",
+  "has_pck": false,
+  "has_dll": true,
+  "affects_gameplay": false,
+  "min_game_version": "0.111.0",
+  "dependencies": []
+}

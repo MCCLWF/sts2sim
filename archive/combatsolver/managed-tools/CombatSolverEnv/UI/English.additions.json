@@ -1,0 +1,13 @@
+{
+  "Env 分支核对已停止；当前由 Native 执行动作。\n{0}": "Env branch verification stopped; Native executes actions.\n{0}",
+  "Native（原生搜索）": "Native search",
+  "Env（状态不支持时回退 Native）": "Env (fallback to Native when unsupported)",
+  "同时核对 Env / Native": "Compare Env / Native",
+  "搜索后端": "Search backend",
+  "显示 Env / Native 对比": "Show Env / Native comparison",
+  "Env 搜索后端": "Env search backend",
+  "后续战斗边界生效；不支持的状态会继续使用 Native": "Applied at the next combat boundary; unsupported state continues with Native",
+  "Env 完整 live 根适配完成前会明确拒绝并由 Native 继续；Both 显示两种路径的检查结果。": "Until the complete live root adapter is ready, Env refuses unsupported roots and Native continues; Both shows both paths' checks.",
+  "记录节点、转移和耗时对比；核对本身会增加 Native 测量时间。": "Record node, transition and timing comparisons; verification itself adds time to Native measurements.",
+  "设置会持久化。当前 live 根仍在逐字段冻结，发生未移植、奖励订阅或未知字段时会显示原因并安全回退 Native。": "Settings persist. The live root is still being frozen field by field; unported, reward subscription or unknown state is shown and safely falls back to Native."
+}

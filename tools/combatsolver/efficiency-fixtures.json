@@ -1,0 +1,588 @@
+[
+  {
+    "name": "IRONCLAD-CULTISTS_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_IRONCLAD+1,STRIKE_IRONCLAD+1,DEFEND_IRONCLAD+1,DEFEND_IRONCLAD+1,BASH+1,ANGER,SHRUG_IT_OFF+1,INFLAME,BODY_SLAM+1,BURNING_PACT,BATTLE_TRANCE,POMMEL_STRIKE+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "IRONCLAD-BYGONE_EFFIGY_ELITE-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "BYGONE_EFFIGY_ELITE",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_IRONCLAD+1,STRIKE_IRONCLAD+1,DEFEND_IRONCLAD+1,DEFEND_IRONCLAD+1,BASH+1,ANGER,SHRUG_IT_OFF+1,INFLAME,BODY_SLAM+1,BURNING_PACT,BATTLE_TRANCE,POMMEL_STRIKE+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "SILENT-CULTISTS_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "SILENT",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_SILENT+1,STRIKE_SILENT+1,DEFEND_SILENT+1,DEFEND_SILENT+1,SURVIVOR+1,NEUTRALIZE+1,DEADLY_POISON+1,BOUNCING_FLASK,BACKFLIP+1,ACROBATICS+1,CALCULATED_GAMBLE,DAGGER_SPRAY+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "SILENT-BYGONE_EFFIGY_ELITE-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "SILENT",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "BYGONE_EFFIGY_ELITE",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_SILENT+1,STRIKE_SILENT+1,DEFEND_SILENT+1,DEFEND_SILENT+1,SURVIVOR+1,NEUTRALIZE+1,DEADLY_POISON+1,BOUNCING_FLASK,BACKFLIP+1,ACROBATICS+1,CALCULATED_GAMBLE,DAGGER_SPRAY+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "REGENT-CULTISTS_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "REGENT",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_REGENT+1,STRIKE_REGENT+1,DEFEND_REGENT+1,DEFEND_REGENT+1,FALLING_STAR+1,GENESIS,REFINE_BLADE+1,SUMMON_FORTH+1,BEGONE,CELESTIAL_MIGHT,GATHER_LIGHT,SWORD_SAGE",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "REGENT-BYGONE_EFFIGY_ELITE-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "REGENT",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "BYGONE_EFFIGY_ELITE",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_REGENT+1,STRIKE_REGENT+1,DEFEND_REGENT+1,DEFEND_REGENT+1,FALLING_STAR+1,GENESIS,REFINE_BLADE+1,SUMMON_FORTH+1,BEGONE,CELESTIAL_MIGHT,GATHER_LIGHT,SWORD_SAGE",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "NECROBINDER-CULTISTS_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "NECROBINDER",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_NECROBINDER+1,STRIKE_NECROBINDER+1,DEFEND_NECROBINDER+1,DEFEND_NECROBINDER+1,BODYGUARD+1,CAPTURE_SPIRIT+1,GRAVE_WARDEN+1,REAP,SOUL_STORM,SIC_EM+1,GLIMPSE_BEYOND,BLIGHT_STRIKE+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "NECROBINDER-BYGONE_EFFIGY_ELITE-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "NECROBINDER",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "BYGONE_EFFIGY_ELITE",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_NECROBINDER+1,STRIKE_NECROBINDER+1,DEFEND_NECROBINDER+1,DEFEND_NECROBINDER+1,BODYGUARD+1,CAPTURE_SPIRIT+1,GRAVE_WARDEN+1,REAP,SOUL_STORM,SIC_EM+1,GLIMPSE_BEYOND,BLIGHT_STRIKE+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "DEFECT-CULTISTS_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "DEFECT",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_DEFECT+1,STRIKE_DEFECT+1,DEFEND_DEFECT+1,DEFEND_DEFECT+1,ZAP+1,DUALCAST+1,BALL_LIGHTNING,COLD_SNAP+1,DEFRAGMENT+1,CAPACITOR+1,COOLHEADED+1,GLACIER",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "DEFECT-BYGONE_EFFIGY_ELITE-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "DEFECT",
+      "--seed",
+      "CSEFFLOAD01",
+      "--encounter",
+      "BYGONE_EFFIGY_ELITE",
+      "--ascension",
+      "10",
+      "--act-index",
+      "1",
+      "--deck",
+      "STRIKE_DEFECT+1,STRIKE_DEFECT+1,DEFEND_DEFECT+1,DEFEND_DEFECT+1,ZAP+1,DUALCAST+1,BALL_LIGHTNING,COLD_SNAP+1,DEFRAGMENT+1,CAPACITOR+1,COOLHEADED+1,GLACIER",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "SILENT-choice-root-Disabled",
+    "setup_arguments": [
+      "--character",
+      "SILENT",
+      "--seed",
+      "CSEFFCHOICE",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--deck",
+      "SURVIVOR+1,SURVIVOR+1,SURVIVOR+1,SURVIVOR+1,SURVIVOR+1",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION",
+      "--prepare-action",
+      "PlayCard,0,-1"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Disabled"
+    ]
+  },
+  {
+    "name": "IRONCLAD-potion-Disabled",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFPOTION",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--potions",
+      "FIRE_POTION,POISON_POTION",
+      "--relics",
+      "BAG_OF_MARBLES,LANTERN"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Disabled"
+    ]
+  },
+  {
+    "name": "SILENT-choice-root-Smart",
+    "setup_arguments": [
+      "--character",
+      "SILENT",
+      "--seed",
+      "CSEFFCHOICE",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--deck",
+      "SURVIVOR+1,SURVIVOR+1,SURVIVOR+1,SURVIVOR+1,SURVIVOR+1",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION",
+      "--prepare-action",
+      "PlayCard,0,-1"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "IRONCLAD-potion-Smart",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFPOTION",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--potions",
+      "FIRE_POTION,POISON_POTION",
+      "--relics",
+      "BAG_OF_MARBLES,LANTERN"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "Smart"
+    ]
+  },
+  {
+    "name": "SILENT-choice-root-RequireAtLeastOne",
+    "setup_arguments": [
+      "--character",
+      "SILENT",
+      "--seed",
+      "CSEFFCHOICE",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--deck",
+      "SURVIVOR+1,SURVIVOR+1,SURVIVOR+1,SURVIVOR+1,SURVIVOR+1",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION",
+      "--prepare-action",
+      "PlayCard,0,-1"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "RequireAtLeastOne"
+    ]
+  },
+  {
+    "name": "IRONCLAD-potion-RequireAtLeastOne",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFPOTION",
+      "--encounter",
+      "CULTISTS_NORMAL",
+      "--potions",
+      "FIRE_POTION,POISON_POTION",
+      "--relics",
+      "BAG_OF_MARBLES,LANTERN"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12",
+      "--potion-policy",
+      "RequireAtLeastOne"
+    ],
+    "expected_error": "CombatSolver potion policy unsatisfied within the request budget"
+  },
+  {
+    "name": "IRONCLAD-SLIMES_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFMULTI01",
+      "--encounter",
+      "SLIMES_NORMAL",
+      "--ascension",
+      "10",
+      "--deck",
+      "STRIKE_IRONCLAD+1,STRIKE_IRONCLAD+1,DEFEND_IRONCLAD+1,DEFEND_IRONCLAD+1,BASH+1,ANGER,SHRUG_IT_OFF+1,INFLAME,BODY_SLAM+1,BURNING_PACT,BATTLE_TRANCE,POMMEL_STRIKE+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12"
+    ]
+  },
+  {
+    "name": "IRONCLAD-MYTES_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFMULTI01",
+      "--encounter",
+      "MYTES_NORMAL",
+      "--ascension",
+      "10",
+      "--deck",
+      "STRIKE_IRONCLAD+1,STRIKE_IRONCLAD+1,DEFEND_IRONCLAD+1,DEFEND_IRONCLAD+1,BASH+1,ANGER,SHRUG_IT_OFF+1,INFLAME,BODY_SLAM+1,BURNING_PACT,BATTLE_TRANCE,POMMEL_STRIKE+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12"
+    ]
+  },
+  {
+    "name": "IRONCLAD-SCROLLS_OF_BITING_NORMAL-nonstarter",
+    "setup_arguments": [
+      "--character",
+      "IRONCLAD",
+      "--seed",
+      "CSEFFMULTI01",
+      "--encounter",
+      "SCROLLS_OF_BITING_NORMAL",
+      "--ascension",
+      "10",
+      "--deck",
+      "STRIKE_IRONCLAD+1,STRIKE_IRONCLAD+1,DEFEND_IRONCLAD+1,DEFEND_IRONCLAD+1,BASH+1,ANGER,SHRUG_IT_OFF+1,INFLAME,BODY_SLAM+1,BURNING_PACT,BATTLE_TRANCE,POMMEL_STRIKE+1",
+      "--relics",
+      "BAG_OF_PREPARATION,ANCHOR",
+      "--potions",
+      "FIRE_POTION,BLOCK_POTION"
+    ],
+    "arguments": [
+      "--beam",
+      "16",
+      "--nodes",
+      "5000",
+      "--budget-ms",
+      "60000",
+      "--max-turns",
+      "12"
+    ]
+  }
+]

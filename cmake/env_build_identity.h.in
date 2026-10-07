@@ -1,0 +1,4 @@
+#pragma once
+namespace sts2 {
+inline constexpr const char* kNativeBuildSha256 = "@STS2SIM_NATIVE_BUILD_SHA256@";
+}

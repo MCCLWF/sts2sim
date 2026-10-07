@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Sts2Dir Condition="'$(Sts2Dir)' == ''">$(HOME)/snap/steam/common/.local/share/Steam/steamapps/common/Slay the Spire 2</Sts2Dir>
+    <Sts2DataDir Condition="'$(Sts2DataDir)' == ''">$(Sts2Dir)/data_sts2_linuxbsd_x86_64</Sts2DataDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Sts2EnvCompare/Entry.cs" Link="Entry.cs" />
+    <Compile Include="../CombatSolverEnv/Runtime/NativeCombatPrediction.cs" Link="NativeCombatPrediction.cs" />
+    <Compile Include="../CombatSolverEnv/Api/*.cs" Link="Api/%(Filename)%(Extension)" />
+    <Reference Include="sts2" HintPath="$(Sts2DataDir)/sts2.dll" />
+    <Reference Include="GodotSharp" HintPath="$(Sts2DataDir)/GodotSharp.dll" />
+  </ItemGroup>
+  <Target Name="CopyEnvLibrary" AfterTargets="Build">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/../../build/libsts2env_c.so" DestinationFolder="$(TargetDir)" />
+  </Target>
+</Project>
