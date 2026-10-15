@@ -1,0 +1,69 @@
+{
+  "source": "Sts2Oracle",
+  "scope": "derived-card-dependencies (5 cards), upgrade 1",
+  "encounter": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER",
+  "starting_energy": 12,
+  "starting_stars": 50,
+  "max_actions": 100,
+  "upgrade": 1,
+  "oracle_trace": "regent-derived-card-dependencies-upgraded-1-oracle.jsonl",
+  "sim_trace": "regent-derived-card-dependencies-upgraded-1-sim.jsonl",
+  "cases": [
+    {
+      "model": "Debris",
+      "card_id": "DEBRIS",
+      "seed": "REGENTCARD01",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "MinionDiveBomb",
+      "card_id": "MINION_DIVE_BOMB",
+      "seed": "REGENTCARD02",
+      "identical": true,
+      "states": 5,
+      "matched_states": 5,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "MinionSacrifice",
+      "card_id": "MINION_SACRIFICE",
+      "seed": "REGENTCARD03",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "MinionStrike",
+      "card_id": "MINION_STRIKE",
+      "seed": "REGENTCARD04",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SovereignBlade",
+      "card_id": "SOVEREIGN_BLADE",
+      "seed": "REGENTCARD05",
+      "identical": true,
+      "states": 9,
+      "matched_states": 9,
+      "card_select_decisions": 0,
+      "difference": null
+    }
+  ],
+  "totals": {
+    "models": 5,
+    "identical": 5,
+    "states": 38,
+    "matched_states": 38
+  }
+}

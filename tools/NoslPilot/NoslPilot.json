@@ -1,9 +1,9 @@
 {
   "id": "NoslPilot",
-  "name": "sts2sim NoSL 执行器",
+  "name": "R5 猎手助手",
   "author": "sts2sim",
-  "description": "让无搜索策略在游戏里操作整局（开发版：靠同种子的影子模拟器取得观察）。只在设置了 NOSL_PILOT_AUTORUN=1 的隔离实例里自动开局，平时不做任何事。",
-  "version": "0.1.0",
+  "description": "R5 模型在游戏内用 CPU 原生推理，自动操作静默猎手单人对局。可拖动、可收起的控制面板，F8 暂停/继续，F9 交还手动。无需 Python 或联网。",
+  "version": "0.3.0",
   "has_pck": false,
   "has_dll": true,
   "affects_gameplay": false,

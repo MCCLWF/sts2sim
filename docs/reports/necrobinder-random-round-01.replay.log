@@ -1,0 +1,106 @@
+ok    NCBRND56BB92C38428 A0 policy 1 (39 decisions)
+ok    NCBRND69B372598862 A0 policy 1 (50 decisions)
+ok    NCBRND92440CBAA56A A0 policy 1 (53 decisions)
+ok    NCBRNDE98BCB176E59 A0 policy 1 (26 decisions)
+ok    NCBRND89FF5F70B6FA A0 policy 1 (37 decisions)
+ok    NCBRND42F197C0C366 A0 policy 1 (59 decisions)
+ok    NCBRND32960EC1DA3E A0 policy 1 (68 decisions)
+ok    NCBRNDDF691ADF6898 A0 policy 1 (41 decisions)
+ok    NCBRND3F04E69FAE25 A0 policy 1 (43 decisions)
+ok    NCBRND6A5F92629600 A0 policy 1 (52 decisions)
+ok    NCBRNDE7254759E754 A0 policy 1 (45 decisions)
+ok    NCBRND1BD83E9565A5 A0 policy 1 (49 decisions)
+ok    NCBRND7127BDFF5412 A0 policy 1 (57 decisions)
+ok    NCBRNDE4A173E5AE64 A0 policy 1 (35 decisions)
+stop  NCBRND79B43DD6EC06 A0 policy 1 after 53/58 decisions: combat root contains unported model BONE_BREW
+ok    NCBRND433FCB62DDB1 A0 policy 1 (47 decisions)
+ok    NCBRND274008108C9C A0 policy 1 (58 decisions)
+ok    NCBRNDF39C41AFDFFE A0 policy 1 (33 decisions)
+ok    NCBRNDC41EE823E070 A0 policy 1 (55 decisions)
+ok    NCBRND8ED7A4E7BB7A A0 policy 1 (58 decisions)
+ok    NCBRND956E2990816D A0 policy 1 (33 decisions)
+ok    NCBRNDE38BFC2D6D1B A0 policy 1 (45 decisions)
+DIFF  NCBRND9F7D83FA7347 A0 policy 1: decision 24 (card_select): $.options.cards[0] oracle="STRIKE_NECROBINDER" sim="UNLEASH"
+DIFF  NCBRND7C967DE56461 A0 policy 1: decision 1 (rewards): $.options[0].cards[0] oracle="BACKFLIP" sim="ARMAMENTS"
+ok    NCBRNDA22E4687A350 A0 policy 1 (54 decisions)
+ok    NCBRNDBC377D20FAC3 A0 policy 1 (38 decisions)
+ok    NCBRND639878B45642 A0 policy 1 (51 decisions)
+ok    NCBRND93C9BBE85F41 A0 policy 1 (66 decisions)
+ok    NCBRND54FEA8C36BC5 A0 policy 1 (47 decisions)
+ok    NCBRND0A0128D0C905 A0 policy 1 (65 decisions)
+DIFF  NCBRND2AD0E75F079F A0 policy 1: decision 1 (rewards): $.options[0].cards[0] oracle="DEVASTATE" sim="CALCULATED_GAMBLE"
+ok    NCBRNDA98E0A29AE5D A0 policy 1 (75 decisions)
+ok    NCBRND667BF14DA4F6 A0 policy 1 (99 decisions)
+ok    NCBRNDEFC55042CFFD A0 policy 1 (45 decisions)
+ok    NCBRND51DE409DE21E A0 policy 1 (47 decisions)
+ok    NCBRNDB1E1E8F02C19 A0 policy 1 (22 decisions)
+ok    NCBRNDAFE688051460 A0 policy 1 (69 decisions)
+ok    NCBRND8B96D10FF5DC A0 policy 1 (62 decisions)
+DIFF  NCBRNDEB0505E04212 A0 policy 1: decision 1 (rewards): $.options[0].cards[1] oracle="CLOAK_OF_STARS" sim="CLOAK_AND_DAGGER"
+stop  NCBRND6E63B49899FE A0 policy 1 after 23/42 decisions: combat root contains unported model STACK
+ok    NCBRNDFD08E4F81DD6 A0 policy 1 (30 decisions)
+ok    NCBRND49838E4425B9 A0 policy 1 (38 decisions)
+ok    NCBRNDDA00D035DD59 A0 policy 1 (30 decisions)
+ok    NCBRND06EE4BEB83F5 A0 policy 1 (55 decisions)
+ok    NCBRND5FAE34A19984 A0 policy 1 (46 decisions)
+ok    NCBRNDF8E93BF6DAAE A0 policy 1 (52 decisions)
+ok    NCBRND8E1D25D69BEF A0 policy 1 (43 decisions)
+ok    NCBRNDB21BA29890DA A0 policy 1 (50 decisions)
+ok    NCBRND4236A190F014 A0 policy 1 (44 decisions)
+ok    NCBRNDB412FF365FA7 A0 policy 1 (45 decisions)
+ok    NCBRNDF7681E46A59A A0 policy 1 (45 decisions)
+ok    NCBRND32CA26CAEF69 A0 policy 1 (43 decisions)
+ok    NCBRND5046601773B7 A0 policy 1 (60 decisions)
+ok    NCBRND948BA4783FB1 A0 policy 1 (55 decisions)
+ok    NCBRNDECC8330561CB A0 policy 1 (42 decisions)
+ok    NCBRNDD85207949351 A0 policy 1 (29 decisions)
+ok    NCBRND4EAF42F8B9F6 A0 policy 1 (54 decisions)
+ok    NCBRND86BC9711E1AF A0 policy 1 (54 decisions)
+DIFF  NCBRND9BE05C8C8F42 A0 policy 1: decision 15 (event): $.options.event oracle="BYRDONIS_NEST" sim="SAPPHIRE_SEED"
+stop  NCBRND3C78CC657D81 A0 policy 1 after 34/46 decisions: combat root contains unported model POT_OF_GHOULS
+ok    NCBRND6FDA3BFD5F27 A0 policy 1 (38 decisions)
+ok    NCBRND0B6DC7EBEBFE A0 policy 1 (52 decisions)
+ok    NCBRND1CBA0CC37DA4 A0 policy 1 (39 decisions)
+ok    NCBRND045B9AA5BFB0 A0 policy 1 (60 decisions)
+ok    NCBRND161460B578F2 A0 policy 1 (29 decisions)
+ok    NCBRND67527C92E61B A0 policy 1 (39 decisions)
+ok    NCBRNDC4D033404182 A0 policy 1 (61 decisions)
+stop  NCBRND714B38E6888D A0 policy 1 after 21/31 decisions: combat root contains unported model POTION_OF_DOOM
+DIFF  NCBRND9AF4B72EE182 A0 policy 1: decision 1 (rewards): $.options[0].cards[0] oracle="HIDDEN_CACHE" sim="POISONED_STAB"
+ok    NCBRNDB97995E3BED5 A0 policy 1 (44 decisions)
+ok    NCBRND50465886F226 A0 policy 1 (35 decisions)
+ok    NCBRND21FFE7CB062C A0 policy 1 (34 decisions)
+ok    NCBRND8388C1192411 A0 policy 1 (42 decisions)
+ok    NCBRND5F33FC4482A3 A0 policy 1 (26 decisions)
+stop  NCBRNDAB08D0F46708 A0 policy 1 after 35/41 decisions: combat root contains unported model CALTROPS
+ok    NCBRNDC1A5350D575F A0 policy 1 (48 decisions)
+DIFF  NCBRND2094DAFB09DB A0 policy 1: decision 25: sim stopped (current monster state is not a valid move state)
+ok    NCBRND4E4268EAEE04 A0 policy 1 (38 decisions)
+ok    NCBRND5737AC4C84EE A0 policy 1 (31 decisions)
+stop  NCBRND0857F54A0042 A0 policy 1 after 23/42 decisions: combat root contains unported model CALTROPS
+ok    NCBRND89B41501497B A0 policy 1 (67 decisions)
+ok    NCBRND3FF9C6A148FA A0 policy 1 (50 decisions)
+ok    NCBRND8C21006CDFBA A0 policy 1 (31 decisions)
+ok    NCBRND0BE9BA4DEBCB A0 policy 1 (81 decisions)
+ok    NCBRND5B447EB25ADC A0 policy 1 (27 decisions)
+stop  NCBRNDAE5C81ABE46D A0 policy 1 after 16/50 decisions: combat root contains unported model POTION_OF_DOOM
+ok    NCBRNDD521642C943E A0 policy 1 (45 decisions)
+ok    NCBRNDB2CB67076D22 A0 policy 1 (30 decisions)
+DIFF  NCBRND75A448A6EE14 A0 policy 1: decision 41: sim stopped (current monster state is not a valid move state)
+DIFF  NCBRNDF9D4F67BC58B A0 policy 1: decision 1 (rewards): $.options[0].cards[0] oracle="MEMENTO_MORI" sim="PILLAGE"
+ok    NCBRND088C78546D55 A0 policy 1 (39 decisions)
+ok    NCBRND97703DCDF048 A0 policy 1 (30 decisions)
+ok    NCBRND3CE7043D03E8 A0 policy 1 (45 decisions)
+ok    NCBRND73910ABD7309 A0 policy 1 (51 decisions)
+ok    NCBRNDF7150AAC11FE A0 policy 1 (48 decisions)
+ok    NCBRND5FCA1879174C A0 policy 1 (37 decisions)
+ok    NCBRND8718583543BA A0 policy 1 (38 decisions)
+ok    NCBRND2C01B8ED1830 A0 policy 1 (52 decisions)
+ok    NCBRND7BF02FB53E28 A0 policy 1 (43 decisions)
+ok    NCBRND195843DB12D9 A0 policy 1 (33 decisions)
+L4 run: 100 runs: 84 identical, 7 stopped at unported content, 9 diverged; 4216/4633 decisions matched
+    2 x combat root contains unported model POTION_OF_DOOM
+    2 x combat root contains unported model CALTROPS
+    1 x combat root contains unported model BONE_BREW
+    1 x combat root contains unported model STACK
+    1 x combat root contains unported model POT_OF_GHOULS

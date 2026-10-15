@@ -22,15 +22,18 @@ using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Events;
+using MegaCrit.Sts2.Core.Nodes.Events.Custom;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens;
+using MegaCrit.Sts2.Core.Nodes.Screens.Capstones;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
@@ -60,7 +63,8 @@ namespace NoslPilot;
 // about its future. On a mismatch, a timeout or a pilot error it stops acting
 // and leaves the game as it is.
 //
-// It only acts in an instance started with NOSL_PILOT_AUTORUN=1:
+// Normal startup uses Interactive.cs and the in-game control panel. The following
+// environment variables opt into the isolated developer autorun instead:
 //   NOSL_PILOT_SEED, NOSL_PILOT_WEIGHTS   the run seed and the exported weights (required)
 //   NOSL_PILOT_ASCENSION (10), NOSL_PILOT_FILTER (1), NOSL_PILOT_POLICY_SEED (1), NOSL_PILOT_GREEDY (0)
 //   NOSL_PILOT_MODE       shadow (default): decisions and observations come from the native pilot's shadow run, and
@@ -72,9 +76,15 @@ namespace NoslPilot;
 //   NOSL_PILOT_INTERACTIVE  1 (default): the game stays in its normal interactive mode. 0: the unattended mode of
 //                         the game's own smoke test (no waits, no pausing); faster, but the Punch Off event's
 //                         cosmetic loop crashes the game in it, as it does at Instant speed
-//   NOSL_PILOT_QUIT       1: quit the game when the run is over or the pilot stops (default 1)
+//   NOSL_PILOT_QUIT       1: quit the game when the run is over or the pilot stops (default 1); never after a hand-over
+//   NOSL_PILOT_CONTROL    a file read before every decision; its last non-empty line is one of
+//                         pause     the pilot does nothing and the game is the player's
+//                         resume    the pilot goes on; in direct mode it reads the screen again, so it continues
+//                                   from wherever the player left the game
+//                         takeover  the pilot ends for this run and leaves the game running for the player
+//                         With a window, F8 toggles the pause and F9 hands over.
 [ModInitializer(nameof(Initialize))]
-public static class Entry
+public static partial class Entry
 {
     private sealed class PilotStop : Exception
     {
@@ -108,7 +118,12 @@ public static class Entry
 
     public static void Initialize()
     {
-        if (System.Environment.GetEnvironmentVariable("NOSL_PILOT_AUTORUN") != "1") return;
+        NativeRuntime.Initialize();
+        if (System.Environment.GetEnvironmentVariable("NOSL_PILOT_AUTORUN") != "1")
+        {
+            _ = InitializeInteractiveAsync();
+            return;
+        }
         GD.Print("[NoslPilot] autorun requested");
         _ = AutoRunAsync();
     }
@@ -141,20 +156,17 @@ public static class Entry
             SaveManager.Instance.SetFtuesEnabled(enabled: false);
             if (Env("NOSL_PILOT_INTERACTIVE", "1") != "1") NonInteractiveMode.AutoSlayerCheck = () => true;
 
+            _controlPath = Env("NOSL_PILOT_CONTROL", "");
             _direct = Env("NOSL_PILOT_MODE", "shadow") == "direct";
             // In direct mode the seed only starts the run in the game (a test convenience); nothing native receives it.
             if (_direct) _actor = new NativeActor(weights, filter, policySeed, greedy);
             else _pilot = new NativePilot(seed, ascension, filter, weights, policySeed, greedy);
             await StartRunAsync(seed, ascension);
             using IDisposable selector = CardSelectCmd.UseSelector(new Selector());
-            Harmony harmony = new("sts2sim.nosl-pilot");
-            harmony.Patch(AccessTools.Method(typeof(CardSelectCmd), nameof(CardSelectCmd.FromChooseABundleScreen)),
-                prefix: new HarmonyMethod(typeof(Entry), nameof(ChooseBundle)));
-            harmony.Patch(AccessTools.Method(typeof(CrystalSphereMinigame), nameof(CrystalSphereMinigame.PlayMinigame)),
-                prefix: new HarmonyMethod(typeof(Entry), nameof(PlayCrystalSphere)));
+            InstallChoiceHooks();
             outcome = _direct ? await PlayDirectAsync() : await PlayAsync();
         }
-        catch (PilotStop stop) { reason = stop.Message; }
+        catch (PilotStop stop) { reason = stop.Message; if (_handedOver) outcome = "handed_over"; }
         catch (Exception ex) { reason = ex.ToString(); }
         try
         {
@@ -179,7 +191,9 @@ public static class Entry
             _log?.Dispose();
             _pilot?.Dispose();
             _actor?.Dispose();
-            if (Env("NOSL_PILOT_QUIT", "1") == "1") _host?.GetTree().Quit(outcome == "stopped" ? 1 : 0);
+            _actor = null;
+            _pilot = null;
+            if (Env("NOSL_PILOT_QUIT", "1") == "1" && !_handedOver) _host?.GetTree().Quit(outcome == "stopped" ? 1 : 0);
         }
     }
 
@@ -216,17 +230,25 @@ public static class Entry
     private static (string decision, bool cardReward, bool nestedRewards)? Detect()
     {
         if (RunManager.Instance.ActionExecutor.IsRunning) return null;
+        if (!RelicsSettled()) return null;
         if (_pendingPurchase is { IsCompleted: false }) return null;
         IOverlayScreen? top = NOverlayStack.Instance?.Peek();
-        if (_player.Creature.IsDead || top is NGameOverScreen) return ("Ended", false, false);
+        // Only the game's own game-over screen, or the victory room, ends the run. A player at 0 HP is not the end
+        // while a revive is still to resolve (Fairy in a Bottle): read at that moment it looked like a death.
+        if (top is NGameOverScreen || _run.CurrentRoom?.IsVictoryRoom == true) return ("Ended", false, false);
+        if (_player.Creature.IsDead) return null;
         if (top is NCardRewardSelectionScreen) return ("Choice", true, false);
-        if (NMapScreen.Instance is { IsOpen: true } map) return map is { IsTravelEnabled: true, IsTraveling: false } ? ("Map", false, false) : null;
+        // An open map during a combat is the player looking at it, never a map decision.
+        if (NMapScreen.Instance is { IsOpen: true } map)
+            return map is { IsTravelEnabled: true, IsTraveling: false } && !CombatManager.Instance.IsInProgress ? ("Map", false, false) : null;
         if (top is NRewardsScreen rewards)
             return (bool)AccessTools.Field(typeof(NRewardsScreen), "_isTerminal").GetValue(rewards)! ? ("Rewards", false, false) : ("Choice", false, true);
         if (top != null) return null;
         if (CombatManager.Instance.IsInProgress) return IsReady("Combat", false) ? ("Combat", false, false) : null;
         switch (_run.CurrentRoom)
         {
+            case EventRoom when FakeShop() != null:
+                return IsReady("Shop", false) ? ("Shop", false, false) : null;
             case EventRoom room:
                 return !room.LocalMutableEvent.IsFinished && IsReady("Event", false) ? ("Event", false, false) : null;
             case RestSiteRoom rest:
@@ -280,6 +302,15 @@ public static class Entry
         while (true)
         {
             if (_fatal != null) throw new PilotStop(_fatal);
+            if (await Hold()) { idle.Restart(); nudgeAt = 0.5; }
+            // A normal menu start publishes CurrentRoom before async event assets and
+            // its per-player event exist. The autorun entry awaited EnterAct first.
+            if (_run.CurrentRoom is EventRoom && RunManager.Instance.EventSynchronizer.Events.Count == 0)
+            {
+                if (idle.Elapsed.TotalSeconds > 60) throw new PilotStop("事件场景加载超过 60 秒，请手动检查后重试。");
+                await Frame();
+                continue;
+            }
             if (_run.CurrentRoom is TreasureRoom) await OpenChestOnce();
             (string decision, bool cardReward, bool nestedRewards)? at = Detect();
             if (at == null)
@@ -328,6 +359,51 @@ public static class Entry
         return (int)act["action"]!["index"]!;
     }
 
+    // ---- pause, resume, hand over (NOSL_PILOT_CONTROL, F8, F9) ----
+
+    private static string _controlPath = "";
+    private static bool _pausedByKey, _handedOver, _f8Down, _f9Down;
+
+    private static string ControlCommand()
+    {
+        try
+        {
+            if (_controlPath.Length == 0 || !File.Exists(_controlPath)) return "";
+            return File.ReadLines(_controlPath).Select(line => line.Trim().ToLowerInvariant()).LastOrDefault(line => line.Length > 0) ?? "";
+        }
+        catch (IOException) { return ""; }
+    }
+
+    // Waits while the pilot is paused; true when it did wait. Throws when the run is handed over.
+    private static async Task<bool> Hold()
+    {
+        if (_interactive) return await HoldInteractiveAsync();
+        bool waited = false;
+        while (true)
+        {
+            string command = ControlCommand();
+            bool f8 = Input.IsKeyPressed(Key.F8), f9 = Input.IsKeyPressed(Key.F9);
+            if (f8 && !_f8Down) _pausedByKey = !_pausedByKey;
+            bool handOver = command == "takeover" || (f9 && !_f9Down);
+            _f8Down = f8;
+            _f9Down = f9;
+            if (handOver)
+            {
+                _handedOver = true;
+                Emit(new JsonObject { ["event"] = "takeover", ["where"] = Where(), ["t"] = Math.Round(Clock.Elapsed.TotalSeconds, 2) });
+                throw new PilotStop("handed over to the player");
+            }
+            if (command != "pause" && !_pausedByKey)
+            {
+                if (waited) Emit(new JsonObject { ["event"] = "resumed", ["where"] = Where(), ["t"] = Math.Round(Clock.Elapsed.TotalSeconds, 2) });
+                return waited;
+            }
+            if (!waited) Emit(new JsonObject { ["event"] = "paused", ["where"] = Where(), ["t"] = Math.Round(Clock.Elapsed.TotalSeconds, 2) });
+            waited = true;
+            await Frame();
+        }
+    }
+
     // ---- shadow mode ----
 
     private static async Task<string> PlayAsync()
@@ -335,6 +411,7 @@ public static class Entry
         while (true)
         {
             if (_fatal != null) throw new PilotStop(_fatal);
+            await Hold();
             JsonObject peek = Parse(_pilot!.Peek());
             string decision = (string)peek["decision"]!;
             string expected = (string)peek["digest"]!;
@@ -382,7 +459,7 @@ public static class Entry
             case "Event": return Observer.Build(_run, _player, Observer.DEvent);
             case "RestSite":
                 return Observer.Build(_run, _player, Observer.DRestSite, restProceed: Room<NRestSiteRoom>("RestSiteRoom")!.ProceedButton.IsEnabled);
-            case "Shop": return Observer.Build(_run, _player, Observer.DShop, shop: ((MerchantRoom)_run.CurrentRoom!).GetLocalInventory());
+            case "Shop": return Observer.Build(_run, _player, Observer.DShop, shop: ShopInventory());
             case "Treasure":
                 return Observer.Build(_run, _player, Observer.DTreasure,
                     treasure: RunManager.Instance.TreasureRoomRelicSynchronizer.CurrentRelics ?? (IReadOnlyList<RelicModel>)System.Array.Empty<RelicModel>());
@@ -391,7 +468,15 @@ public static class Entry
                 NCardRewardSelectionScreen screen = (NCardRewardSelectionScreen)NOverlayStack.Instance!.Peek()!;
                 IReadOnlyList<CardRewardAlternative> alternatives =
                     (IReadOnlyList<CardRewardAlternative>)AccessTools.Field(typeof(NCardRewardSelectionScreen), "_extraOptions").GetValue(screen)!;
-                CardReward reward = _activeCardReward ?? throw new InvalidOperationException("no card reward was opened");
+                // A player may open a reward while paused, or before pressing Start. Bind
+                // to the reward that owns the actual visible screen, not the last AI click.
+                CardReward reward = UiHelperFindAll<NRewardsScreen>(_host).SelectMany(s => RewardsOf(s).Rewards)
+                    .OfType<CardReward>().FirstOrDefault(r => ReferenceEquals(
+                        AccessTools.Field(typeof(CardReward), "_currentlyShownScreen").GetValue(r), screen))
+                    ?? (_activeCardReward != null && ReferenceEquals(
+                        AccessTools.Field(typeof(CardReward), "_currentlyShownScreen").GetValue(_activeCardReward), screen)
+                        ? _activeCardReward : throw new PilotStop("无法识别当前卡牌奖励，请手动完成后再开始。"));
+                _activeCardReward = reward;
                 return Observer.Build(_run, _player, Observer.DChoice, Observer.CardRewardChoice(reward, alternatives));
             }
             case "Choice" when nestedRewards:
@@ -497,9 +582,34 @@ public static class Entry
         return live;
     }
 
+    // 21 relics show another number for about a second after they trigger: while their private IsActivating is
+    // set, DisplayAmount returns the trigger count instead of the counter (HappyFlower.DoActivateVisuals and the
+    // like). It is a visual window; the observation the policy was trained on is the settled display. A decision is
+    // therefore read only once no relic the player owns is inside that window.
+    private static readonly Dictionary<Type, FieldInfo?> ActivatingField = new();
+
+    private static bool RelicsSettled()
+    {
+        foreach (RelicModel relic in _player.Relics)
+        {
+            Type type = relic.GetType();
+            if (!ActivatingField.TryGetValue(type, out FieldInfo? field))
+                ActivatingField[type] = field = type.GetField("_isActivating", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (field?.GetValue(relic) is true) return false;
+        }
+        return true;
+    }
+
+    private static async Task WaitRelicsSettled()
+    {
+        Stopwatch waited = Stopwatch.StartNew();
+        while (!RelicsSettled() && waited.Elapsed.TotalSeconds < 5) await Frame();
+    }
+
     private static bool IsReady(string decision, bool cardReward)
     {
         if (RunManager.Instance.ActionExecutor.IsRunning) return false;
+        if (!RelicsSettled()) return false;
         if (_pendingPurchase is { IsCompleted: false }) return false;
         IOverlayScreen? top = NOverlayStack.Instance?.Peek();
         switch (decision)
@@ -520,11 +630,24 @@ public static class Entry
                     && Room<Node>("EventRoom") is { } node
                     && UiHelperFindAll<NEventOptionButton>(node).Count >= room.LocalMutableEvent.CurrentOptions.Count;
             case "RestSite": return top == null && Room<NRestSiteRoom>("RestSiteRoom") != null && NMapScreen.Instance?.IsOpen != true;
-            case "Shop": return top == null && Room<NMerchantRoom>("MerchantRoom") != null && NMapScreen.Instance?.IsOpen != true;
+            case "Shop":
+                return top == null && NMapScreen.Instance?.IsOpen != true
+                    && (Room<NMerchantRoom>("MerchantRoom") != null || (FakeShop() != null && FakeShopNode()?.Inventory?.Inventory != null));
             case "Treasure": return top == null && Room<NTreasureRoom>("TreasureRoom") != null && _chestOpened;
             default: return false;
         }
     }
+
+    // The Fake Merchant event is a shop inside an event room, with a scene node of its own and relics only.
+    private static FakeMerchant? FakeShop() =>
+        _run.CurrentRoom is EventRoom { LocalMutableEvent: FakeMerchant { StartedFight: false } fake } ? fake : null;
+
+    private static NFakeMerchant? FakeShopNode() =>
+        Room<Node>("EventRoom") is { } node ? UiHelperFindAll<NFakeMerchant>(node).FirstOrDefault() : null;
+
+    private static MerchantInventory ShopInventory() =>
+        _run.CurrentRoom is MerchantRoom merchant ? merchant.GetLocalInventory()
+        : FakeShop()?.Inventory ?? throw new PilotStop("a shop decision without a merchant");
 
     private static string Where()
     {
@@ -549,13 +672,22 @@ public static class Entry
 
     private static async Task ProceedToMap()
     {
-        if (Room<Node>("EventRoom") is { } eventRoom
+        // Only the room the run is in can need a proceed click, and only while nothing else is going on. The scene
+        // node of the room just left stays in the tree for a moment after travel: clicking its proceed control then
+        // reopens the map over the room that was just entered (seen in direct mode, where nothing says which
+        // decision comes next).
+        if (NMapScreen.Instance?.IsOpen == true || CombatManager.Instance.IsInProgress || RunManager.Instance.ActionExecutor.IsRunning)
+        {
+            await Frame();
+            return;
+        }
+        if (_run.CurrentRoom is EventRoom { LocalMutableEvent.IsFinished: true } && Room<Node>("EventRoom") is { } eventRoom
             && UiHelperFindAll<NEventOptionButton>(eventRoom).FirstOrDefault(b => !b.Option.IsLocked && b.Option.IsProceed) is { } proceed)
         {
             Note("clicking the event's proceed option");
             proceed.ForceClick();
         }
-        else if (Room<NTreasureRoom>("TreasureRoom") is { } treasure)
+        else if (_run.CurrentRoom is TreasureRoom && Room<NTreasureRoom>("TreasureRoom") is { } treasure)
         {
             await OpenChestOnce();  // an empty chest (Hook.ShouldGenerateTreasure) is still opened before leaving
             bool relicLeft = RunManager.Instance.TreasureRoomRelicSynchronizer.CurrentRelics is { Count: > 0 } && !_treasureResolved;
@@ -565,7 +697,7 @@ public static class Entry
                 treasure.ProceedButton.ForceClick();
             }
         }
-        else if (Room<NRestSiteRoom>("RestSiteRoom") is { } rest && rest.ProceedButton.IsEnabled
+        else if (_run.CurrentRoom is RestSiteRoom && Room<NRestSiteRoom>("RestSiteRoom") is { } rest && rest.ProceedButton.IsEnabled
                  && (!_direct || _run.CurrentRoom is RestSiteRoom { Options.Count: 0 }))
         {
             Note("clicking the rest site's proceed button");
@@ -592,6 +724,9 @@ public static class Entry
                 int floor = _run.TotalFloor;
                 point.ForceClick();
                 await WaitUntil(() => _run.TotalFloor != floor || !ReferenceEquals(_run.CurrentRoom, before), 30, "the room to be entered after the map click");
+                // The map screen stays open, with travel still enabled, for a moment after the room has been entered.
+                // Read then, it looks like a second map decision: wait until the screen has really closed.
+                await WaitUntil(() => NMapScreen.Instance?.IsOpen != true, 30, "the map screen to close after the room was entered");
                 break;
             }
             case "PlayCard":
@@ -671,9 +806,14 @@ public static class Entry
             }
             case "ShopBuy":
             {
-                NMerchantRoom room = Room<NMerchantRoom>("MerchantRoom")!;
-                if (!room.Inventory.Visible) { room.OpenInventory(); await Frames(10); }
-                MerchantInventory inventory = room.Inventory.Inventory ?? throw new PilotStop("the merchant has no inventory");
+                MerchantInventory inventory;
+                if (FakeShop() is { } fake) inventory = fake.Inventory;
+                else
+                {
+                    NMerchantRoom room = Room<NMerchantRoom>("MerchantRoom")!;
+                    if (!room.Inventory.Visible) { room.OpenInventory(); await Frames(10); }
+                    inventory = room.Inventory.Inventory ?? throw new PilotStop("the merchant has no inventory");
+                }
                 List<MerchantEntry> stocked = inventory.AllEntries.Where(entry => entry.IsStocked).ToList();
                 if (index < 0 || index >= stocked.Count) throw new PilotStop($"no stocked shop entry {index}");
                 _pendingPurchase = stocked[index].OnTryPurchaseWrapper(inventory);
@@ -776,6 +916,15 @@ public static class Entry
                 await WaitUntil(() => NMapScreen.Instance?.IsOpen == true, 20, "the map to open after the rest site");
                 break;
             }
+            case "Shop" when FakeShop() != null:
+            {
+                NFakeMerchant node = FakeShopNode() ?? throw new PilotStop("the Fake Merchant's node is gone");
+                NProceedButton leave = UiHelperFindAll<NProceedButton>(node).FirstOrDefault() ?? throw new PilotStop("the Fake Merchant has no proceed button");
+                await WaitUntil(() => leave.IsEnabled, 10, "the Fake Merchant's proceed button");
+                leave.ForceClick();
+                await WaitUntil(() => NMapScreen.Instance?.IsOpen == true, 20, "the map to open after the Fake Merchant");
+                break;
+            }
             case "Shop":
             {
                 NMerchantRoom room = Room<NMerchantRoom>("MerchantRoom")!;
@@ -801,9 +950,15 @@ public static class Entry
 
     private sealed class Selector : MegaCrit.Sts2.Core.TestSupport.ICardSelector
     {
-        public Task<IEnumerable<CardModel>> GetSelectedCards(IEnumerable<CardModel> options, int minSelect, int maxSelect)
+        public async Task<IEnumerable<CardModel>> GetSelectedCards(IEnumerable<CardModel> options, int minSelect, int maxSelect)
         {
             List<CardModel> source = options.ToList();
+            await WaitRelicsSettled();
+            return Select(source, minSelect, maxSelect);
+        }
+
+        private static IEnumerable<CardModel> Select(List<CardModel> source, int minSelect, int maxSelect)
+        {
             if (_direct)
             {
                 try
@@ -813,12 +968,12 @@ public static class Entry
                     List<int> chosen = new();
                     for (int i = 0; i < count; i++)
                         chosen.Add(DecideChoice(Observer.CardSelection(source, minSelect, maxSelect, asked, false, chosen)));
-                    return Task.FromResult<IEnumerable<CardModel>>(chosen.Select(i => source[i]).ToList());
+                    return (chosen.Select(i => source[i]).ToList());
                 }
                 catch (Exception ex)
                 {
                     _fatal ??= ex is PilotStop ? ex.Message : ex.ToString();
-                    return Task.FromResult<IEnumerable<CardModel>>(source.Take(Math.Min(Math.Max(minSelect, 0), source.Count)).ToList());
+                    return (source.Take(Math.Min(Math.Max(minSelect, 0), source.Count)).ToList());
                 }
             }
             try
@@ -850,14 +1005,14 @@ public static class Entry
                         picked.Add(source[pick]);
                     }
                 }
-                return Task.FromResult<IEnumerable<CardModel>>(picked);
+                return (picked);
             }
             catch (Exception ex)
             {
                 // The game is in the middle of an action: give it a legal answer and let the driver stop.
                 _fatal ??= ex is PilotStop ? ex.Message : ex.ToString();
                 int count = Math.Min(Math.Max(minSelect, 0), source.Count);
-                return Task.FromResult<IEnumerable<CardModel>>(source.Take(count).ToList());
+                return (source.Take(count).ToList());
             }
         }
 
@@ -887,6 +1042,7 @@ public static class Entry
     // CardSelectCmd.FromChooseABundleScreen shows a screen; the pilot answers in its place, as the oracle driver does.
     private static bool ChooseBundle(Player player, IReadOnlyList<IReadOnlyList<CardModel>> bundles, ref Task<IEnumerable<CardModel>> __result)
     {
+        if (_interactive && _interactiveSelector == null) return true;
         if (_pilot == null && _actor == null) return true;
         if (CombatManager.Instance.IsEnding || bundles.Count == 0)
         {
@@ -923,10 +1079,25 @@ public static class Entry
 
     private static bool PlayCrystalSphere(CrystalSphereMinigame __instance, ref Task __result)
     {
-        if (_direct) { _fatal ??= "the Crystal Sphere minigame is not encoded by the game-side observer yet"; return true; }
-        if (_pilot == null) return true;
+        if (_interactive && _interactiveSelector == null) return true;
+        if (!_direct && _pilot == null) return true;
         __result = ResolveCrystalSphere(__instance);
         return false;
+    }
+
+    // The minigame as the Env asks it (game/Models/Events/CrystalSphere.h, CellRequest): one option per cell, row by
+    // row, then the small and the big tool. The observation does not describe the grid (a known gap of nosl.obs v1),
+    // so these tables are the same at every step of the minigame.
+    private static Choice CrystalSphereChoice()
+    {
+        const int width = 11;
+        Choice choice = new() { Kind = 2, Source = "crystal_sphere", Prompt = "CRYSTAL_SPHERE.minigame", Min = 1, Max = 1 };
+        for (int y = 0; y < width; y++)
+            for (int x = 0; x < width; x++)
+                choice.Options.Add(new ChoiceOption { Kind = 3, Key = $"CRYSTAL_SPHERE.cell.{x}.{y}" });
+        choice.Options.Add(new ChoiceOption { Kind = 3, Key = "CRYSTAL_SPHERE.button.DIVINATION_LABEL_SMALL" });
+        choice.Options.Add(new ChoiceOption { Kind = 3, Key = "CRYSTAL_SPHERE.button.DIVINATION_LABEL_BIG" });
+        return choice;
     }
 
     private static async Task ResolveCrystalSphere(CrystalSphereMinigame game)
@@ -936,9 +1107,16 @@ public static class Entry
         {
             while (!game.IsFinished)
             {
-                JsonObject act = TakeNext();
-                if ((string?)act["choice"]?["source"] != "crystal_sphere") throw new PilotStop("the game plays the Crystal Sphere, the pilot is elsewhere");
-                int pick = (int)act["action"]!["index"]!;
+                await WaitRelicsSettled();
+                int pick;
+                if (_direct) pick = DecideChoice(CrystalSphereChoice());
+                else
+                {
+                    CheckObservation("Choice:crystal_sphere", () => Observer.Build(_run, _player, Observer.DChoice, CrystalSphereChoice()));
+                    JsonObject act = TakeNext();
+                    if ((string?)act["choice"]?["source"] != "crystal_sphere") throw new PilotStop("the game plays the Crystal Sphere, the pilot is elsewhere");
+                    pick = (int)act["action"]!["index"]!;
+                }
                 if (pick == width * width) game.SetTool(CrystalSphereMinigame.CrystalSphereToolType.Small);
                 else if (pick == width * width + 1) game.SetTool(CrystalSphereMinigame.CrystalSphereToolType.Big);
                 else await game.CellClicked(game.cells[pick % width, pick / width]);
@@ -962,7 +1140,10 @@ public static class Entry
             + $" r{_player.Relics.Count} p[{string.Join(",", _player.PotionSlots.Select(p => p?.Id.Entry ?? "-"))}]";
         PlayerCombatState? pcs = _player.PlayerCombatState;
         CombatState? combat = CombatManager.Instance.DebugOnlyGetState();
-        if (!CombatManager.Instance.IsInProgress || pcs == null || combat == null) return s;
+        // A lost combat stays "in progress" until the game next checks for its end (LoseCombat only marks the loss);
+        // when the player dies at the end of their own turn the game-over screen is up before that. The simulator has
+        // processed the loss by then, so a combat about to be lost is described as over here too.
+        if (!CombatManager.Instance.IsInProgress || CombatManager.Instance.IsAboutToLose || pcs == null || combat == null) return s;
         string hand = string.Join(",", pcs.Hand.Cards.Select(c => c.Id.Entry + (c.CurrentUpgradeLevel > 0 ? "+" + c.CurrentUpgradeLevel : "")));
         string enemies = string.Join(",", combat.Enemies.Select(e => $"{e.Monster!.Id.Entry}:{e.CurrentHp}:{e.Block}"));
         return s + $" | b{self.Block} e{pcs.Energy} t{pcs.TurnNumber} h[{hand}] dr{pcs.DrawPile.Cards.Count} di{pcs.DiscardPile.Cards.Count}"
@@ -971,8 +1152,21 @@ public static class Entry
 
     // ---- small helpers ----
 
-    private static T? Room<T>(string name) where T : Node =>
-        ((SceneTree)Engine.GetMainLoop()).Root.GetNodeOrNull(RoomPath + name) as T;
+    private static readonly Dictionary<Type, FieldInfo?> RoomField = new();
+
+    // The scene node of the room the run is in. For a moment after travel the node of the room just left is still at
+    // the same path; with two rooms of one kind in a row (two treasure rooms) its chest and relic holders are the old
+    // ones. A node that records which room it shows (NTreasureRoom, NRestSiteRoom: `_room`) is returned only when
+    // that is the room the run is in now.
+    private static T? Room<T>(string name) where T : Node
+    {
+        if (((SceneTree)Engine.GetMainLoop()).Root.GetNodeOrNull(RoomPath + name) is not T node) return null;
+        Type type = node.GetType();
+        if (!RoomField.TryGetValue(type, out FieldInfo? field))
+            RoomField[type] = field = type.GetField("_room", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (field?.GetValue(node) is AbstractRoom shown && !ReferenceEquals(shown, _run.CurrentRoom)) return null;
+        return node;
+    }
 
     private static List<T> UiHelperFindAll<T>(Node start) where T : Node
     {
@@ -987,7 +1181,11 @@ public static class Entry
         return found;
     }
 
-    private static async Task Frame() => await _host.ToSignal(_host.GetTree(), SceneTree.SignalName.ProcessFrame);
+    private static async Task Frame()
+    {
+        await _host.ToSignal(_host.GetTree(), SceneTree.SignalName.ProcessFrame);
+        if (_interactive && _sessionActive && !CurrentSessionIsValid()) throw new PilotStop("对局已关闭或切换");
+    }
 
     private static async Task Frames(int count)
     {
@@ -998,7 +1196,9 @@ public static class Entry
     private static async Task Settle()
     {
         await Frame();
-        await RunManager.Instance.ActionExecutor.FinishedExecutingActions();
+        Task finished = RunManager.Instance.ActionExecutor.FinishedExecutingActions();
+        if (_interactive) while (!finished.IsCompleted) await Frame();
+        await finished;
         await Frame();
     }
 
@@ -1007,6 +1207,13 @@ public static class Entry
         Stopwatch waited = Stopwatch.StartNew();
         while (!condition())
         {
+            if (_interactive && NCapstoneContainer.Instance?.InUse == true)
+            {
+                waited.Stop();
+                await Frame();
+                continue;
+            }
+            waited.Start();
             if (waited.Elapsed.TotalSeconds > seconds) throw new PilotStop($"timed out after {seconds:0}s waiting for {what} ({Where()})");
             await Frame();
         }
@@ -1016,5 +1223,9 @@ public static class Entry
 
     private static void Note(string text) => Emit(new JsonObject { ["event"] = "note", ["text"] = text, ["t"] = Math.Round(Clock.Elapsed.TotalSeconds, 2) });
 
-    private static void Emit(JsonObject value) => _log?.WriteLine(value.ToJsonString());
+    private static void Emit(JsonObject value)
+    {
+        _log?.WriteLine(value.ToJsonString());
+        if (_interactive) RecordPanelAction(value);
+    }
 }

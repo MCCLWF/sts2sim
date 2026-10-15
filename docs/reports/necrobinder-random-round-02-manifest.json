@@ -1,0 +1,15 @@
+{
+  "round": 2,
+  "source_audit": "docs/audits/necrobinder-v0110-source-inventory.md",
+  "generated_utc": "2026-09-29T12:16:29.332715+00:00",
+  "count": 100,
+  "unique": 100,
+  "fresh_vs_round_01": true,
+  "seeds_file": "docs/reports/necrobinder-random-round-02-seeds.txt",
+  "trace_file": "docs/reports/necrobinder-random-round-02.oracle.jsonl",
+  "replay_log": "docs/reports/necrobinder-random-round-02.replay.log",
+  "command": "python3 tests/l4/l4_run.py --seeds <100 fresh seeds> --characters NECROBINDER --policy-seeds 1 --max-decisions 5000 --stop victory --trace-output docs/reports/necrobinder-random-round-02.oracle.jsonl --require-complete --verify-snapshots --verbose",
+  "returncode": 1,
+  "result": "100/100 seeds rejected at decision 0: seed too long; not counted toward acceptance",
+  "accepted": false
+}

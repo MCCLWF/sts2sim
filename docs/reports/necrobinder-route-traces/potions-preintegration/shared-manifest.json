@@ -1,0 +1,314 @@
+{
+  "all_unique_ids": [
+    "AMBERGRIS",
+    "ASHWATER",
+    "ATTACK_POTION",
+    "BEETLE_JUICE",
+    "BLESSING_OF_THE_FORGE",
+    "BLOCK_POTION",
+    "BLOOD_POTION",
+    "BONE_BREW",
+    "BOTTLED_POTENTIAL",
+    "CLARITY",
+    "COLORLESS_POTION",
+    "COSMIC_CONCOCTION",
+    "CUNNING_POTION",
+    "CURE_ALL",
+    "DEPRECATED_POTION",
+    "DEXTERITY_POTION",
+    "DISTILLED_CHAOS",
+    "DROPLET_OF_PRECOGNITION",
+    "DUPLICATOR",
+    "ENERGY_POTION",
+    "ENTROPIC_BREW",
+    "ESSENCE_OF_DARKNESS",
+    "EXPLOSIVE_AMPOULE",
+    "FAIRY_IN_A_BOTTLE",
+    "FIRE_POTION",
+    "FLEX_POTION",
+    "FOCUS_POTION",
+    "FORTIFIER",
+    "FOUL_POTION",
+    "FRUIT_JUICE",
+    "FYSH_OIL",
+    "GAMBLERS_BREW",
+    "GHOST_IN_A_JAR",
+    "GIGANTIFICATION_POTION",
+    "GLOWWATER_POTION",
+    "HEART_OF_IRON",
+    "KINGS_COURAGE",
+    "LIQUID_BRONZE",
+    "LIQUID_MEMORIES",
+    "LUCKY_TONIC",
+    "MAZALETHS_GIFT",
+    "OROBIC_ACID",
+    "POISON_POTION",
+    "POTION_OF_BINDING",
+    "POTION_OF_CAPACITY",
+    "POTION_OF_DOOM",
+    "POTION_SHAPED_ROCK",
+    "POT_OF_GHOULS",
+    "POWDERED_DEMISE",
+    "POWER_POTION",
+    "RADIANT_TINCTURE",
+    "REGEN_POTION",
+    "SHACKLING_POTION",
+    "SHIP_IN_A_BOTTLE",
+    "SKILL_POTION",
+    "SNECKO_OIL",
+    "SOLDIERS_STEW",
+    "SPEED_POTION",
+    "STABLE_SERUM",
+    "STAR_POTION",
+    "STRENGTH_POTION",
+    "SWIFT_POTION",
+    "TOUCH_OF_INSANITY",
+    "VULNERABLE_POTION",
+    "WEAK_POTION"
+  ],
+  "groups": [
+    [
+      "SHARED_POTION_POOL",
+      "IRONCLAD"
+    ],
+    [
+      "EVENT_POTION_POOL",
+      "IRONCLAD"
+    ],
+    [
+      "DEPRECATED_POTION_POOL",
+      "IRONCLAD"
+    ],
+    [
+      "TOKEN_POTION_POOL",
+      "IRONCLAD"
+    ],
+    [
+      "IRONCLAD_POTION_POOL",
+      "IRONCLAD"
+    ],
+    [
+      "SILENT_POTION_POOL",
+      "SILENT"
+    ],
+    [
+      "DEFECT_POTION_POOL",
+      "DEFECT"
+    ],
+    [
+      "REGENT_POTION_POOL",
+      "REGENT"
+    ],
+    [
+      "NECROBINDER_POTION_POOL",
+      "NECROBINDER"
+    ]
+  ],
+  "batches": [
+    {
+      "file": "tests/results/shared-content-v0110/potions/000-shared_potion_pool.jsonl",
+      "pool": "SHARED_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "ATTACK_POTION",
+        "BEETLE_JUICE",
+        "BLESSING_OF_THE_FORGE",
+        "BLOCK_POTION",
+        "BOTTLED_POTENTIAL",
+        "CLARITY",
+        "COLORLESS_POTION",
+        "CURE_ALL"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 8/8 combats identical, 0 unported, 0 diverged, 8/8 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/001-shared_potion_pool.jsonl",
+      "pool": "SHARED_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "DEXTERITY_POTION",
+        "DISTILLED_CHAOS",
+        "DROPLET_OF_PRECOGNITION",
+        "DUPLICATOR",
+        "ENERGY_POTION",
+        "ENTROPIC_BREW",
+        "EXPLOSIVE_AMPOULE",
+        "FAIRY_IN_A_BOTTLE"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 8/8 combats identical, 0 unported, 0 diverged, 9/9 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/002-shared_potion_pool.jsonl",
+      "pool": "SHARED_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "FIRE_POTION",
+        "FLEX_POTION",
+        "FORTIFIER",
+        "FRUIT_JUICE",
+        "FYSH_OIL",
+        "GAMBLERS_BREW",
+        "GIGANTIFICATION_POTION",
+        "HEART_OF_IRON"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 8/8 combats identical, 0 unported, 0 diverged, 8/8 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/003-shared_potion_pool.jsonl",
+      "pool": "SHARED_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "LIQUID_BRONZE",
+        "LIQUID_MEMORIES",
+        "LUCKY_TONIC",
+        "MAZALETHS_GIFT",
+        "OROBIC_ACID",
+        "POTION_OF_BINDING",
+        "POWDERED_DEMISE",
+        "POWER_POTION"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 8/8 combats identical, 0 unported, 0 diverged, 8/8 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/004-shared_potion_pool.jsonl",
+      "pool": "SHARED_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "RADIANT_TINCTURE",
+        "REGEN_POTION",
+        "SHACKLING_POTION",
+        "SHIP_IN_A_BOTTLE",
+        "SKILL_POTION",
+        "SNECKO_OIL",
+        "SPEED_POTION",
+        "STABLE_SERUM"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 8/8 combats identical, 0 unported, 0 diverged, 8/8 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/005-shared_potion_pool.jsonl",
+      "pool": "SHARED_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "STRENGTH_POTION",
+        "SWIFT_POTION",
+        "TOUCH_OF_INSANITY",
+        "VULNERABLE_POTION",
+        "WEAK_POTION"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 5/5 combats identical, 0 unported, 0 diverged, 5/5 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/006-event_potion_pool.jsonl",
+      "pool": "EVENT_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "AMBERGRIS",
+        "FOUL_POTION",
+        "GLOWWATER_POTION"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 3/3 combats identical, 0 unported, 0 diverged, 3/3 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/007-deprecated_potion_pool.jsonl",
+      "pool": "DEPRECATED_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "DEPRECATED_POTION"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 1/1 combats identical, 0 unported, 0 diverged, 1/1 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/008-token_potion_pool.jsonl",
+      "pool": "TOKEN_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "POTION_SHAPED_ROCK"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 1/1 combats identical, 0 unported, 0 diverged, 1/1 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/009-ironclad_potion_pool.jsonl",
+      "pool": "IRONCLAD_POTION_POOL",
+      "owner": "IRONCLAD",
+      "potions": [
+        "BLOOD_POTION",
+        "SOLDIERS_STEW",
+        "ASHWATER"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 3/3 combats identical, 0 unported, 0 diverged, 3/3 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/010-silent_potion_pool.jsonl",
+      "pool": "SILENT_POTION_POOL",
+      "owner": "SILENT",
+      "potions": [
+        "POISON_POTION",
+        "GHOST_IN_A_JAR",
+        "CUNNING_POTION"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 3/3 combats identical, 0 unported, 0 diverged, 3/3 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/011-defect_potion_pool.jsonl",
+      "pool": "DEFECT_POTION_POOL",
+      "owner": "DEFECT",
+      "potions": [
+        "FOCUS_POTION",
+        "ESSENCE_OF_DARKNESS",
+        "POTION_OF_CAPACITY"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 3/3 combats identical, 0 unported, 0 diverged, 3/3 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/012-regent_potion_pool.jsonl",
+      "pool": "REGENT_POTION_POOL",
+      "owner": "REGENT",
+      "potions": [
+        "STAR_POTION",
+        "COSMIC_CONCOCTION",
+        "KINGS_COURAGE"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 3/3 combats identical, 0 unported, 0 diverged, 3/3 states matched",
+      "replay_rc": 0
+    },
+    {
+      "file": "tests/results/shared-content-v0110/potions/013-necrobinder_potion_pool.jsonl",
+      "pool": "NECROBINDER_POTION_POOL",
+      "owner": "NECROBINDER",
+      "potions": [
+        "POTION_OF_DOOM",
+        "POT_OF_GHOULS",
+        "BONE_BREW"
+      ],
+      "oracle_rc": 0,
+      "comparison": "L3 combat: 3/3 combats identical, 0 unported, 0 diverged, 3/3 states matched",
+      "replay_rc": 0
+    }
+  ]
+}

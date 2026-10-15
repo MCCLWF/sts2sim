@@ -1,0 +1,43 @@
+{
+ "margin": 0.02,
+ "combat": {
+  "checkpoint": "/home/wst/Desktop/MCC/sts2sim/artifacts/nosl-r4/p/combat-01690.pt",
+  "checkpoint_sha256": "3bfc41f15cc55ca2e74530003faaec6b550ef30d785a2ecec6889922515c13b0",
+  "exported_sha256": "8e1b4db82e339720dfe0901df8ed6ece7f6bbd377abdc86c6b6b4a7d1677d879"
+ },
+ "base": {
+  "checkpoint": "/home/wst/Desktop/MCC/sts2sim/artifacts/nosl-q4u/start.pt",
+  "checkpoint_sha256": "6fb5f1955a11d55175d348659460ce459017baa018f7cf9242a671ba19266703",
+  "exported_sha256": "6f1da8d828cae4863e0f2c6620e3958d55b1ef9d5e4a12a97d4f3fd670fffa52"
+ },
+ "strategy": {
+  "checkpoint": "/home/wst/Desktop/MCC/sts2sim/artifacts/nosl-r4/f3c.pt",
+  "checkpoint_sha256": "1bb3cd8c6e0bcef8c1b32ab156964e0c8885e6a8ea41c873c046c48bccb9d403",
+  "exported_sha256": "bc00f9ecac2e53b98ad52ddf265829b0a0e569aac4b1d4b3b40cc02bfa0beceb"
+ },
+ "table": {
+  "source": "/home/wst/Desktop/MCC/sts2sim/artifacts/nosl-r4/table-g4.json",
+  "delta": 0.01,
+  "rows": 2072,
+  "source_sha256": "48d08ff28d290076567d0d5a4508d2b30cb6d6332703a631e4c4807dd8e2775f",
+  "exported_sha256": "61cf240137768279fbd2eb2d497174cfb95e34981b7ee3fefe25defd845535dc"
+ },
+ "readiness": {
+  "source": "/home/wst/Desktop/MCC/sts2sim/artifacts/nosl-r5/chain-g5.json",
+  "lambda": 2.0,
+  "scope": "cards,upgrade",
+  "acts": null,
+  "chain": true,
+  "table": true,
+  "rows": 1818,
+  "source_sha256": "a3567d492336ca09e1b587a22c20bfabcc6c7b039258e1cb391f016b1d3463a8",
+  "exported_sha256": "fa32cc48b39c03a8d150fe1a87dceeb22e6e1e9b261e6bd689bf09519d8401cd"
+ },
+ "combat_value": {
+  "checkpoint": "/home/wst/Desktop/MCC/sts2sim/artifacts/nosl-r10/fit/m40b.pt",
+  "margin": 0.05,
+  "checkpoint_sha256": "5295b17ba6e26f9d3f22c16e445d965f880321c61eeadc88455a3ddf54048813",
+  "exported_sha256": "2d881d04c5895e3446975a42a8afd21bde7ba9e18aafcc8608cddada6063dbf6"
+ },
+ "guards": "nodiscard,nobuyfull,takerewards"
+}

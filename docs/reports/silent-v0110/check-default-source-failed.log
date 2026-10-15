@@ -1,0 +1,114 @@
+
+== C++ build
+[  0%] Checking complete POD field traversal
+[  2%] Built target sts2core
+[  4%] Built target sts2content
+[  4%] Built target check_state_field_schema
+[  6%] Built target test_content
+[  7%] Built target test_core
+[ 11%] Built target sts2engine
+[ 12%] Building CXX object CMakeFiles/sts2game.dir/game/generated/Dispatch.cpp.o
+[ 13%] Linking CXX static library libsts2game.a
+[ 57%] Built target sts2game
+[ 58%] Linking CXX executable test_relics
+[ 59%] Linking CXX executable test_generated_card_add
+[ 60%] Linking CXX executable test_silent_pools
+[ 61%] Linking CXX executable test_colorless
+[ 63%] Linking CXX executable test_potions
+[ 62%] Linking CXX executable test_vakuu
+[ 70%] Built target sts2env
+[ 71%] Linking CXX executable test_env
+[ 72%] Linking CXX executable test_battleworn_timeout
+[ 72%] Linking CXX executable test_architect_event
+[ 73%] Linking CXX executable test_preview
+[ 74%] Linking CXX executable test_snapshot
+[ 76%] Linking CXX executable test_act_transition
+[ 77%] Built target sts2search
+[ 77%] Building CXX object CMakeFiles/test_silent_play_capture.dir/tests/test_silent_play_capture.cpp.o
+[ 78%] Linking CXX shared library libsts2env_c.so
+[ 79%] Linking CXX executable test_run_queries
+[ 80%] Linking CXX executable sts2sim_cli
+[ 81%] Linking CXX executable test_search
+[ 82%] Built target test_vakuu
+[ 83%] Built target test_potions
+[ 84%] Built target test_env
+[ 85%] Built target test_silent_pools
+[ 86%] Built target test_architect_event
+[ 87%] Built target test_generated_card_add
+[ 88%] Built target test_colorless
+[ 89%] Built target test_relics
+[ 90%] Built target test_battleworn_timeout
+[ 91%] Built target test_run_queries
+[ 91%] Built target test_preview
+[ 92%] Built target test_act_transition
+[ 93%] Built target test_search
+[ 94%] Built target sts2env_c
+[ 98%] Built target sts2sim_cli
+[ 99%] Built target test_snapshot
+[100%] Linking CXX executable test_silent_play_capture
+[100%] Built target test_silent_play_capture
+
+== unit tests (L0/L1 golden vectors, content tables)
+Test project /home/wst/Desktop/MCC/sts2sim-wt/feat-silent-hunter-v0110/build
+      Start  1: core_golden
+ 1/18 Test  #1: core_golden ......................   Passed    0.10 sec
+      Start  2: content_tables
+ 2/18 Test  #2: content_tables ...................   Passed    0.07 sec
+      Start  3: env_m3
+ 3/18 Test  #3: env_m3 ...........................   Passed    0.05 sec
+      Start  4: env_snapshot
+ 4/18 Test  #4: env_snapshot .....................   Passed    0.11 sec
+      Start  5: env_preview
+ 5/18 Test  #5: env_preview ......................   Passed    0.18 sec
+      Start  6: env_run_queries
+ 6/18 Test  #6: env_run_queries ..................   Passed    0.41 sec
+      Start  7: env_act_transition
+ 7/18 Test  #7: env_act_transition ...............   Passed    0.34 sec
+      Start  8: env_architect_event
+ 8/18 Test  #8: env_architect_event ..............   Passed    0.03 sec
+      Start  9: generated_card_add
+ 9/18 Test  #9: generated_card_add ...............   Passed    0.01 sec
+      Start 10: search_m3
+10/18 Test #10: search_m3 ........................   Passed    0.06 sec
+      Start 11: potions_common_m4
+11/18 Test #11: potions_common_m4 ................   Passed    0.35 sec
+      Start 12: relics_common_m4
+12/18 Test #12: relics_common_m4 .................   Passed    1.77 sec
+      Start 13: colorless_m4
+13/18 Test #13: colorless_m4 .....................   Passed    6.01 sec
+      Start 14: silent_source_pools
+14/18 Test #14: silent_source_pools ..............   Passed    0.01 sec
+      Start 15: silent_play_capture_restore
+15/18 Test #15: silent_play_capture_restore ......   Passed    0.03 sec
+      Start 16: vakuu_event
+16/18 Test #16: vakuu_event ......................   Passed    0.00 sec
+      Start 17: battleworn_timeout
+17/18 Test #17: battleworn_timeout ...............   Passed    0.14 sec
+      Start 18: env_python
+18/18 Test #18: env_python .......................   Passed    0.32 sec
+
+100% tests passed, 0 tests failed out of 18
+
+Total Test time (real) =  10.00 sec
+
+== smoke: agents play whole runs (no error, no hang; unported content may stop a run)
+smoke: death=94 unported=6
+smoke: death=100
+smoke: boss=3 death=97
+
+== oracle build
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.18
+Traceback (most recent call last):
+  File "/home/wst/Desktop/MCC/sts2sim-wt/feat-silent-hunter-v0110/tools/coverage/map_source_inventory.py", line 125, in <module>
+    main()
+    ~~~~^^
+  File "/home/wst/Desktop/MCC/sts2sim-wt/feat-silent-hunter-v0110/tools/coverage/map_source_inventory.py", line 108, in main
+    result = build(args.source_root)
+  File "/home/wst/Desktop/MCC/sts2sim-wt/feat-silent-hunter-v0110/tools/coverage/map_source_inventory.py", line 88, in build
+    raise ValueError(f"Missing original C# source files: {missing_sources}")
+ValueError: Missing original C# source files: ['Models/Acts/DeprecatedAct.cs', 'Models/Acts/Glory.cs', 'Models/Acts/Hive.cs', 'Models/Acts/Overgrowth.cs', 'Models/Acts/Underdocks.cs', 'Models/Events/AbyssalBaths.cs', 'Models/Events/Amalgamator.cs', 'Models/Events/AromaOfChaos.cs', 'Models/Events/BattlewornDummy.cs', 'Models/Events/BrainLeech.cs', 'Models/Events/Bugslayer.cs', 'Models/Events/ByrdonisNest.cs', 'Models/Events/ColorfulPhilosophers.cs', 'Models/Events/ColossalFlower.cs', 'Models/Events/CrystalSphere.cs', 'Models/Events/DenseVegetation.cs', 'Models/Events/DeprecatedEvent.cs', 'Models/Events/DollRoom.cs', 'Models/Events/DoorsOfLightAndDark.cs', 'Models/Events/DrowningBeacon.cs', 'Models/Events/EndlessConveyor.cs', 'Models/Events/FakeMerchant.cs', 'Models/Events/FieldOfManSizedHoles.cs', 'Models/Events/GraveOfTheForgotten.cs', 'Models/Events/HungryForMushrooms.cs', 'Models/Events/InfestedAutomaton.cs', 'Models/Events/JungleMazeAdventure.cs', 'Models/Events/LostWisp.cs', 'Models/Events/LuminousChoir.cs', 'Models/Events/MorphicGrove.cs', 'Models/Events/PotionCourier.cs', 'Models/Events/PunchOff.cs', 'Models/Events/RanwidTheElder.cs', 'Models/Events/Reflections.cs', 'Models/Events/RelicTrader.cs', 'Models/Events/RoomFullOfCheese.cs', 'Models/Events/RoundTeaParty.cs', 'Models/Events/SapphireSeed.cs', 'Models/Events/SelfHelpBook.cs', 'Models/Events/SlipperyBridge.cs', 'Models/Events/SpiralingWhirlpool.cs', 'Models/Events/SpiritGrafter.cs', 'Models/Events/StoneOfAllTime.cs', 'Models/Events/SunkenStatue.cs', 'Models/Events/SunkenTreasury.cs', 'Models/Events/Symbiote.cs', 'Models/Events/TabletOfTruth.cs', 'Models/Events/TeaMaster.cs', 'Models/Events/TheArchitect.cs', 'Models/Events/TheFutureOfPotions.cs', 'Models/Events/TheLanternKey.cs', 'Models/Events/TheLegendsWereTrue.cs', 'Models/Events/ThisOrThat.cs', 'Models/Events/TinkerTime.cs', 'Models/Events/TrashHeap.cs', 'Models/Events/Trial.cs', 'Models/Events/UnrestSite.cs', 'Models/Events/WarHistorianRepy.cs', 'Models/Events/WaterloggedScriptorium.cs', 'Models/Events/WelcomeToWongos.cs', 'Models/Events/Wellspring.cs', 'Models/Events/WhisperingHollow.cs', 'Models/Events/WoodCarvings.cs', 'Models/Events/ZenWeaver.cs', 'Models/Events/Darv.cs', 'Models/Events/DeprecatedAncientEvent.cs', 'Models/Events/Neow.cs', 'Models/Events/Nonupeipe.cs', 'Models/Events/Orobas.cs', 'Models/Events/Pael.cs', 'Models/Events/Tanx.cs', 'Models/Events/Tezcatara.cs', 'Models/Events/Vakuu.cs', 'Models/Encounters/AeonglassBoss.cs', 'Models/Encounters/AxebotsNormal.cs', 'Models/Encounters/BattlewornDummyEventV1Encounter.cs', 'Models/Encounters/BattlewornDummyEventV2Encounter.cs', 'Models/Encounters/BattlewornDummyEventV3Encounter.cs', 'Models/Encounters/BowlbugsNormal.cs', 'Models/Encounters/BowlbugsWeak.cs', 'Models/Encounters/BygoneEffigyElite.cs', 'Models/Encounters/ByrdonisElite.cs', 'Models/Encounters/CeremonialBeastBoss.cs', 'Models/Encounters/ChompersNormal.cs', 'Models/Encounters/ConstructMenagerieNormal.cs', 'Models/Encounters/CorpseSlugsNormal.cs', 'Models/Encounters/CorpseSlugsWeak.cs', 'Models/Encounters/CubexConstructNormal.cs', 'Models/Encounters/CultistsNormal.cs', 'Models/Encounters/DecimillipedeElite.cs', 'Models/Encounters/DenseVegetationEventEncounter.cs', 'Models/Encounters/DeprecatedEncounter.cs', 'Models/Encounters/DevotedSculptorWeak.cs', 'Models/Encounters/EntomancerElite.cs', 'Models/Encounters/ExoskeletonsNormal.cs', 'Models/Encounters/ExoskeletonsWeak.cs', 'Models/Encounters/FabricatorNormal.cs', 'Models/Encounters/FakeMerchantEventEncounter.cs', 'Models/Encounters/FlyconidNormal.cs', 'Models/Encounters/FogmogNormal.cs', 'Models/Encounters/FossilStalkerNormal.cs', 'Models/Encounters/FrogKnightNormal.cs', 'Models/Encounters/FuzzyWurmCrawlerWeak.cs', 'Models/Encounters/GlobeHeadNormal.cs', 'Models/Encounters/GremlinMercNormal.cs', 'Models/Encounters/HauntedShipNormal.cs', 'Models/Encounters/HunterKillerNormal.cs', 'Models/Encounters/InfestedPrismsElite.cs', 'Models/Encounters/InkletsNormal.cs', 'Models/Encounters/KaiserCrabBoss.cs', 'Models/Encounters/KnightsElite.cs', 'Models/Encounters/KnowledgeDemonBoss.cs', 'Models/Encounters/LagavulinMatriarchBoss.cs', 'Models/Encounters/LivingFogNormal.cs', 'Models/Encounters/LouseProgenitorNormal.cs', 'Models/Encounters/MawlerNormal.cs', 'Models/Encounters/MechaKnightElite.cs', 'Models/Encounters/MysteriousKnightEventEncounter.cs', 'Models/Encounters/MytesNormal.cs', 'Models/Encounters/NibbitsNormal.cs', 'Models/Encounters/NibbitsWeak.cs', 'Models/Encounters/OvergrowthCrawlers.cs', 'Models/Encounters/OvicopterNormal.cs', 'Models/Encounters/OwlMagistrateNormal.cs', 'Models/Encounters/PhantasmalGardenersElite.cs', 'Models/Encounters/PhrogParasiteElite.cs', 'Models/Encounters/PunchConstructNormal.cs', 'Models/Encounters/PunchOffEventEncounter.cs', 'Models/Encounters/QueenBoss.cs', 'Models/Encounters/RubyRaidersNormal.cs', 'Models/Encounters/ScrollsOfBitingNormal.cs', 'Models/Encounters/ScrollsOfBitingWeak.cs', 'Models/Encounters/SeapunkNormal.cs', 'Models/Encounters/SeapunkWeak.cs', 'Models/Encounters/SewerClamNormal.cs', 'Models/Encounters/ShrinkerBeetleWeak.cs', 'Models/Encounters/SkulkingColonyElite.cs', 'Models/Encounters/SlimedBerserkerNormal.cs', 'Models/Encounters/SlimesNormal.cs', 'Models/Encounters/SlimesWeak.cs', 'Models/Encounters/SlitheringStranglerNormal.cs', 'Models/Encounters/SludgeSpinnerWeak.cs', 'Models/Encounters/SlumberingBeetleNormal.cs', 'Models/Encounters/SnappingJaxfruitNormal.cs', 'Models/Encounters/SoulFyshBoss.cs', 'Models/Encounters/SoulNexusElite.cs', 'Models/Encounters/SpinyToadNormal.cs', 'Models/Encounters/TerrorEelElite.cs', 'Models/Encounters/TestSubjectBoss.cs', 'Models/Encounters/TheArchitectEventEncounter.cs', 'Models/Encounters/TheInsatiableBoss.cs', 'Models/Encounters/TheKinBoss.cs', 'Models/Encounters/TheLostAndForgottenNormal.cs', 'Models/Encounters/TheObscuraNormal.cs', 'Models/Encounters/ThievingHopperWeak.cs', 'Models/Encounters/ToadpolesWeak.cs', 'Models/Encounters/TunnelerNormal.cs', 'Models/Encounters/TunnelerWeak.cs', 'Models/Encounters/TurretOperatorWeak.cs', 'Models/Encounters/TwoTailedRatsNormal.cs', 'Models/Encounters/VantomBoss.cs', 'Models/Encounters/VineShamblerNormal.cs', 'Models/Encounters/WaterfallGiantBoss.cs', 'Models/Monsters/Aeonglass.cs', 'Models/Monsters/Architect.cs', 'Models/Monsters/AssassinRubyRaider.cs', 'Models/Monsters/Axebot.cs', 'Models/Monsters/AxeRubyRaider.cs', 'Models/Monsters/BattleFriendV1.cs', 'Models/Monsters/BattleFriendV2.cs', 'Models/Monsters/BattleFriendV3.cs', 'Models/Monsters/BigDummy.cs', 'Models/Monsters/BowlbugEgg.cs', 'Models/Monsters/BowlbugNectar.cs', 'Models/Monsters/BowlbugRock.cs', 'Models/Monsters/BowlbugSilk.cs', 'Models/Monsters/BruteRubyRaider.cs', 'Models/Monsters/BygoneEffigy.cs', 'Models/Monsters/Byrdonis.cs', 'Models/Monsters/Byrdpip.cs', 'Models/Monsters/CalcifiedCultist.cs', 'Models/Monsters/CeremonialBeast.cs', 'Models/Monsters/Chomper.cs', 'Models/Monsters/CorpseSlug.cs', 'Models/Monsters/CrossbowRubyRaider.cs', 'Models/Monsters/Crusher.cs', 'Models/Monsters/CubexConstruct.cs', 'Models/Monsters/DampCultist.cs', 'Models/Monsters/DecimillipedeSegmentBack.cs', 'Models/Monsters/DecimillipedeSegmentFront.cs', 'Models/Monsters/DecimillipedeSegmentMiddle.cs', 'Models/Monsters/DeprecatedMonster.cs', 'Models/Monsters/DevotedSculptor.cs', 'Models/Monsters/Entomancer.cs', 'Models/Monsters/Exoskeleton.cs', 'Models/Monsters/EyeWithTeeth.cs', 'Models/Monsters/Fabricator.cs', 'Models/Monsters/FakeMerchantMonster.cs', 'Models/Monsters/FatGremlin.cs', 'Models/Monsters/FlailKnight.cs', 'Models/Monsters/Flyconid.cs', 'Models/Monsters/Fogmog.cs', 'Models/Monsters/FossilStalker.cs', 'Models/Monsters/FrogKnight.cs', 'Models/Monsters/FuzzyWurmCrawler.cs', 'Models/Monsters/GasBomb.cs', 'Models/Monsters/GlobeHead.cs', 'Models/Monsters/GremlinMerc.cs', 'Models/Monsters/Guardbot.cs', 'Models/Monsters/HauntedShip.cs', 'Models/Monsters/HunterKiller.cs', 'Models/Monsters/InfestedPrism.cs', 'Models/Monsters/Inklet.cs', 'Models/Monsters/KinFollower.cs', 'Models/Monsters/KinPriest.cs', 'Models/Monsters/KnowledgeDemon.cs', 'Models/Monsters/LagavulinMatriarch.cs', 'Models/Monsters/LeafSlimeM.cs', 'Models/Monsters/LeafSlimeS.cs', 'Models/Monsters/LivingFog.cs', 'Models/Monsters/LivingShield.cs', 'Models/Monsters/LouseProgenitor.cs', 'Models/Monsters/MagiKnight.cs', 'Models/Monsters/Mawler.cs', 'Models/Monsters/MechaKnight.cs', 'Models/Monsters/MultiAttackMoveMonster.cs', 'Models/Monsters/MysteriousKnight.cs', 'Models/Monsters/Myte.cs', 'Models/Monsters/Nibbit.cs', 'Models/Monsters/Noisebot.cs', 'Models/Monsters/OneHpMonster.cs', 'Models/Monsters/Osty.cs', 'Models/Monsters/Ovicopter.cs', 'Models/Monsters/OwlMagistrate.cs', 'Models/Monsters/PaelsLegion.cs', 'Models/Monsters/Parafright.cs', 'Models/Monsters/PhantasmalGardener.cs', 'Models/Monsters/PhrogParasite.cs', 'Models/Monsters/PunchConstruct.cs', 'Models/Monsters/Queen.cs', 'Models/Monsters/Rocket.cs', 'Models/Monsters/ScrollOfBiting.cs', 'Models/Monsters/Seapunk.cs', 'Models/Monsters/SewerClam.cs', 'Models/Monsters/ShrinkerBeetle.cs', 'Models/Monsters/SingleAttackMoveMonster.cs', 'Models/Monsters/SkulkingColony.cs', 'Models/Monsters/SlimedBerserker.cs', 'Models/Monsters/SlitheringStrangler.cs', 'Models/Monsters/SludgeSpinner.cs', 'Models/Monsters/SlumberingBeetle.cs', 'Models/Monsters/SnappingJaxfruit.cs', 'Models/Monsters/SneakyGremlin.cs', 'Models/Monsters/SoulFysh.cs', 'Models/Monsters/SoulNexus.cs', 'Models/Monsters/SpectralKnight.cs', 'Models/Monsters/SpinyToad.cs', 'Models/Monsters/Stabbot.cs', 'Models/Monsters/TenHpMonster.cs', 'Models/Monsters/TerrorEel.cs', 'Models/Monsters/TestSubject.cs', 'Models/Monsters/TheAdversaryMkOne.cs', 'Models/Monsters/TheAdversaryMkThree.cs', 'Models/Monsters/TheAdversaryMkTwo.cs', 'Models/Monsters/TheForgotten.cs', 'Models/Monsters/TheInsatiable.cs', 'Models/Monsters/TheLost.cs', 'Models/Monsters/TheObscura.cs', 'Models/Monsters/ThievingHopper.cs', 'Models/Monsters/Toadpole.cs', 'Models/Monsters/TorchHeadAmalgam.cs', 'Models/Monsters/ToughEgg.cs', 'Models/Monsters/TrackerRubyRaider.cs', 'Models/Monsters/Tunneler.cs', 'Models/Monsters/TurretOperator.cs', 'Models/Monsters/TwigSlimeM.cs', 'Models/Monsters/TwigSlimeS.cs', 'Models/Monsters/TwoTailedRat.cs', 'Models/Monsters/Vantom.cs', 'Models/Monsters/VineShambler.cs', 'Models/Monsters/WaterfallGiant.cs', 'Models/Monsters/Wriggler.cs', 'Models/Monsters/Zapbot.cs']

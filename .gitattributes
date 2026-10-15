@@ -1,0 +1,6 @@
+# Paths left out of the public snapshot (scripts/export-public.sh, via git archive): the note on, and the comparison
+# tool against, a private reference implementation, and the export script itself (it lists that implementation's
+# identifiers). The script also rewrites the remaining mentions of those identifiers in neutral words.
+/（私有参照实现的说明，未公开） export-ignore
+/tools/combatsolver/sts2ai_compare export-ignore
+/scripts/export-public.sh export-ignore

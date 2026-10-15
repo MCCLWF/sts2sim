@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import multiprocessing as mp
 import time
+import zlib
 from multiprocessing import shared_memory
 from pathlib import Path
 
@@ -18,7 +19,15 @@ import numpy as np
 
 from . import native
 
+
+def ascension_of(seed: str, ascensions) -> int:
+    """The ascension of a run in a mixed-ascension stream: a fixed function of its seed, so that a recorded
+    run can be started again as it was."""
+    return int(ascensions[zlib.crc32(seed.encode()) % len(ascensions)])
+
+
 HANG = 7
+REFORK = -2   # a choice value: put this arena slot on a new root (see VecSampler's `arena`)
 STATUS_NAMES = native.STATUS_NAMES + ("hang",)
 
 # Registered data split (docs/plans/2026-10-03-nosl-q1-foundation.md).
@@ -59,11 +68,41 @@ def _worker(conn, index, lo, hi, shm_names, shapes, config, seeds):
     blocks = {k: shared_memory.SharedMemory(name=n) for k, n in shm_names.items()}
     view = {k: np.ndarray(shapes[k], dtype=np.int32, buffer=blocks[k].buf)[lo:hi] for k in shapes}
     n, spares = hi - lo, config["spares"]
-    batch = native.Batch(n + spares, config["max_tokens"], config["max_actions"], config["max_steps"])
-    batch.set_active(n)
+    arena = config.get("arena") or None
+    roots = arena["roots"] if arena else []
+    arena_slots = min(n, arena["slots"]) if arena else 0
+    batch = native.Batch(n + spares + len(roots), config["max_tokens"], config["max_actions"], config["max_steps"])
     batch.set_filter(config["actor_filter"])
+    bank = []   # slot indexes parked at the first decision of a recorded combat: the sources arena slots are forked from
+    if roots:
+        # Replay each recorded run up to its combat, all of them side by side, in slots past the spares.
+        total, first = n + spares + len(roots), n + spares
+        scratch = {k: np.zeros((total,) + tuple(shapes[k][1:]), np.int32) for k in ("global", "tokens", "actions", "counts", "status", "steps")}
+        rows_in = np.full(total, -1, dtype=np.int32)
+        batch.set_active(total)
+        for b, root in enumerate(roots):
+            batch.reset(first + b, root["seed"], root["ascension"])
+        longest = max(len(root["rows"]) for root in roots)
+        for position in range(longest + 1):
+            rows_in[:] = -1
+            for b, root in enumerate(roots):
+                if position < len(root["rows"]):
+                    rows_in[first + b] = root["rows"][position]
+            batch.step(rows_in, scratch["global"], scratch["tokens"], scratch["actions"], scratch["counts"], scratch["status"],
+                       scratch["steps"], config["auto_forced"])
+        bank = [first + b for b in range(len(roots))
+                if scratch["status"][first + b] == native.RUNNING and scratch["global"][first + b, 11] == 1
+                and scratch["global"][first + b, 1] == 1]   # running, in a combat, at a combat decision
+        if not bank:
+            raise RuntimeError("no arena root could be replayed to its combat")
+        del scratch
+    arena_rng = np.random.default_rng([config.get("arena_seed", 0), index, config["generation"]])
+    batch.set_active(n)
     current = [None] * n
+    current_ascension = [config["ascension"]] * n
     spare_seed = [None] * spares
+    spare_ascension = [config["ascension"]] * spares
+    ascensions = config.get("ascensions") or None  # a mixed stream: each run's level follows from its seed
     pending = []  # runs that failed or ended inside their reset
     counter = 0
     queue = list(seeds) if seeds is not None else None
@@ -77,7 +116,8 @@ def _worker(conn, index, lo, hi, shm_names, shapes, config, seeds):
         return f"{config['seed_prefix']}{index:02d}{config['generation'] % 10}{counter:06d}"
 
     def result(j, status):
-        row = {"slot": lo + j, "seed": current[j], "status": int(status), "steps": int(view["steps"][j]), **batch.run_info(j)}
+        row = {"slot": lo + j, "seed": current[j], "status": int(status), "steps": int(view["steps"][j]), **batch.run_info(j),
+               "ascension": current_ascension[j]}
         if status in (native.UNPORTED, native.ERROR, native.CAPACITY):
             row["message"] = batch.last_error(j)[:300]
         return row
@@ -88,11 +128,13 @@ def _worker(conn, index, lo, hi, shm_names, shapes, config, seeds):
             seed = next_seed()
             if seed is None:
                 return False
-            status = batch.reset(n + s, seed, config["ascension"])
+            level = ascension_of(seed, ascensions) if ascensions else config["ascension"]
+            status = batch.reset(n + s, seed, level)
             if status == native.RUNNING:
                 spare_seed[s] = seed
+                spare_ascension[s] = level
                 return True
-            row = {"slot": -1, "seed": seed, "status": int(status), "steps": 0, **batch.run_info(n + s)}
+            row = {"slot": -1, "seed": seed, "status": int(status), "steps": 0, **batch.run_info(n + s), "ascension": level}
             if status in (native.UNPORTED, native.ERROR, native.CAPACITY):
                 row["message"] = batch.last_error(n + s)[:300]
             pending.append(row)
@@ -107,6 +149,17 @@ def _worker(conn, index, lo, hi, shm_names, shapes, config, seeds):
             return
         batch.swap(j, n + ready)
         current[j], spare_seed[ready] = spare_seed[ready], None
+        current_ascension[j] = spare_ascension[ready]
+        started.append((lo + j, current[j]))
+
+    def refork(j, started):
+        """Arena slot j starts a recorded combat again, with everything the player cannot see resampled."""
+        source = bank[int(arena_rng.integers(len(bank)))]
+        root = roots[source - n - spares]
+        batch.fork(source, j)
+        batch.resample(j, int(arena_rng.integers(1 << 62)))
+        current[j] = root["id"]
+        current_ascension[j] = root["ascension"]
         started.append((lo + j, current[j]))
 
     def write():
@@ -124,9 +177,16 @@ def _worker(conn, index, lo, hi, shm_names, shapes, config, seeds):
             if command == "reset":
                 view["ended"][:] = 0
                 for j in range(n):
-                    take(j, started)
+                    if j < arena_slots:
+                        refork(j, started)
+                    else:
+                        take(j, started)
                 write()
             elif command == "step":
+                for j in range(arena_slots):
+                    if view["choice"][j] == REFORK:   # the trainer saw this slot's combat end with the run going on
+                        refork(j, started)
+                        view["choice"][j] = -1
                 batch.step(view["choice"], view["global"], view["tokens"], view["actions"], view["counts"],
                            view["status"], view["steps"], config["auto_forced"])
                 view["ended"][:] = 0
@@ -136,8 +196,14 @@ def _worker(conn, index, lo, hi, shm_names, shapes, config, seeds):
                     if status == native.RUNNING or current[j] is None:
                         continue
                     view["ended"][j] = status
-                    results.append(result(j, status))
-                    take(j, started)
+                    row = result(j, status)
+                    if j < arena_slots:
+                        row["arena"] = True
+                        results.append(row)
+                        refork(j, started)
+                    else:
+                        results.append(row)
+                        take(j, started)
                     restarted = True
                 if restarted:
                     write()
@@ -160,7 +226,17 @@ class VecSampler:
                  seed_prefix: str = "NT", seeds: list[str] | None = None, final_eval: bool = False,
                  timeout: float = 120.0, auto_forced: bool = True, spares: int = 4, keep_history: bool = False,
                  actor_filter: int = 0,
-                 failure_log: str | Path | None = None):
+                 failure_log: str | Path | None = None, ascensions: list[int] | None = None, arena: dict | None = None):
+        """`ascensions`: a mixed-ascension stream (a training curriculum, never an evaluation of the product): each
+        run's level is ascension_of(seed, ascensions) and is reported in its result row.
+
+        `arena` (training only, an injected scenario, never part of a normal result): {"roots": [...], "slots": k,
+        "bank": b, "seed": s}. The first k slots of every worker do not play whole runs. Each plays one recorded
+        combat after another: a root is {"id", "seed", "ascension", "rows"}, the recorded action rows that lead to
+        the combat's first decision; every worker replays b of them once and keeps them parked, and an arena slot is
+        a fork of one of them with its hidden state resampled (nosl/resample.h). Such a slot's result rows carry
+        "arena": True and its seed is the root's id. When its combat ends with the run still going, the caller
+        passes REFORK as that slot's choice to put it on a new root; when the run ends there, the worker does."""
         if seeds is None:
             check_split(split, seed_prefix + "00")
             if split != "train":
@@ -175,7 +251,12 @@ class VecSampler:
         self.failure_log = Path(failure_log) if failure_log else None
         self.config = {"max_tokens": max_tokens, "max_actions": max_actions, "max_steps": max_steps,
                        "ascension": ascension, "seed_prefix": seed_prefix, "auto_forced": auto_forced, "generation": 0,
-                       "spares": spares, "actor_filter": actor_filter}
+                       "spares": spares, "actor_filter": actor_filter, "ascensions": list(ascensions) if ascensions else None}
+        self.arena = arena
+        self.arena_mask = np.zeros(self.runs, bool)
+        if arena:
+            for w in range(workers):
+                self.arena_mask[w * runs_per_worker:w * runs_per_worker + min(runs_per_worker, arena["slots"])] = True
         self.shapes = _arrays(self.runs, max_tokens, max_actions)
         self._blocks = {k: shared_memory.SharedMemory(create=True, size=int(np.prod(s)) * 4) for k, s in self.shapes.items()}
         self.arrays = {k: np.ndarray(s, dtype=np.int32, buffer=self._blocks[k].buf) for k, s in self.shapes.items()}
@@ -196,8 +277,12 @@ class VecSampler:
         parent, child = self._context.Pipe()
         lo, hi = w * self.per, (w + 1) * self.per
         names = {k: b.name for k, b in self._blocks.items()}
-        proc = self._context.Process(target=_worker, args=(child, w, lo, hi, names, self.shapes, dict(self.config), seeds),
-                                     daemon=True)
+        config = dict(self.config)
+        if self.arena:
+            mine = self.arena["roots"][w::self.workers][:self.arena["bank"]]
+            config["arena"] = {"roots": mine, "slots": self.arena["slots"]}
+            config["arena_seed"] = int(self.arena.get("seed", 0))
+        proc = self._context.Process(target=_worker, args=(child, w, lo, hi, names, self.shapes, config, seeds), daemon=True)
         proc.start()
         child.close()
         self._procs[w], self._conns[w] = proc, parent
@@ -277,7 +362,7 @@ class VecSampler:
         active = (self.arrays["status"] == native.RUNNING) & (choice >= 0)
         for slot in np.nonzero(active)[0]:
             self.history[slot].append(int(choice[slot]))
-        self.arrays["choice"][:] = np.where(active, choice, -1)
+        self.arrays["choice"][:] = np.where(active, choice, np.where((choice == REFORK) & self.arena_mask, REFORK, -1))
         return self._collect("step")
 
     def running(self) -> np.ndarray:

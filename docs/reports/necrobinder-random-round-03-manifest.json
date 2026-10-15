@@ -1,0 +1,16 @@
+{
+  "round": 3,
+  "source_audit": "docs/audits/necrobinder-v0110-source-inventory.md",
+  "generated_utc": "2026-09-29T12:17:12.905349+00:00",
+  "count": 100,
+  "unique": 100,
+  "max_length": 16,
+  "fresh_vs_prior_rounds": true,
+  "seeds_file": "docs/reports/necrobinder-random-round-03-seeds.txt",
+  "trace_file": "docs/reports/necrobinder-random-round-03.oracle.jsonl",
+  "replay_log": "docs/reports/necrobinder-random-round-03.replay.log",
+  "command": "python3 tests/l4/l4_run.py --seeds <100 fresh <=16-char seeds> --characters NECROBINDER --policy-seeds 1 --max-decisions 5000 --stop victory --trace-output docs/reports/necrobinder-random-round-03.oracle.jsonl --require-complete --verify-snapshots --verbose",
+  "returncode": 0,
+  "result": "L4 run: 100 runs: 100 identical, 0 stopped at unported content, 0 diverged; 4740/4740 decisions matched",
+  "accepted": true
+}

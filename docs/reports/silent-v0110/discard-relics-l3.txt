@@ -1,0 +1,2 @@
+ok    SILENTDISCARD01 SILENT policy 3 ['CALCIFIED_CULTIST', 'DAMP_CULTIST'] (20 states)
+L3 combat: 1/1 combats identical, 0 unported, 0 diverged, 20/20 states matched

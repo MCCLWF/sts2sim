@@ -273,6 +273,16 @@ internal static partial class Headless
             // remain original. Used by TestMode=false player-poison timing
             // observations; no gameplay RNG is read by this factory.
             Patch(AccessTools.Method(typeof(NLowHpBorderVfx), nameof(NLowHpBorderVfx.Create)), nameof(NoLowHpBorder));
+            // Create(List<NCreature>) only instantiates the shared death-fade
+            // scene of the Decimillipede's segments; its one caller,
+            // ReattachPower.DoFadeOutOnAllSegments, accepts null and touches
+            // only creature nodes, of which this host has none. TestMode
+            // returns null here too. The kill, AfterDeath hooks and the combat
+            // win check run original; no gameplay RNG is read by the factory.
+            // Without it, killing the last segment with TestMode off throws
+            // on the missing scene cache (found by replaying NR2EVAL000644).
+            Patch(AccessTools.Method(typeof(NMonsterDeathVfx), nameof(NMonsterDeathVfx.Create),
+                new[] { typeof(List<MegaCrit.Sts2.Core.Nodes.Combat.NCreature>) }), nameof(NoMonsterDeathVfx));
             // Run the original helper, including fromSilentAdd pile events.
             // With no nodes, clear only its animation-wait result so Shuffle
             // does not query the nonexistent SceneTree viewport for frame time.
@@ -289,6 +299,7 @@ internal static partial class Headless
     private static bool NoShuffleVfx(ref NCardFlyShuffleVfx? __result) { __result = null; return false; }
     private static bool NoDamageVfx(ref NDamageNumVfx? __result) { __result = null; return false; }
     private static bool NoLowHpBorder(ref NLowHpBorderVfx? __result) { __result = null; return false; }
+    private static bool NoMonsterDeathVfx(ref NMonsterDeathVfx? __result) { __result = null; return false; }
     private static void NoPileAnimationWait(ref (Godot.Tween?, bool) __result)
     {
         if (__result.Item1 is not null) throw new InvalidOperationException("headless_live_combat_unexpected_tween");
@@ -335,9 +346,25 @@ internal static partial class Headless
             Patch(AccessTools.Method(typeof(MegaCrit.Sts2.Core.Rooms.MapRoom), "EnterInternal"), nameof(NoMapRoomView));
             Patch(AccessTools.Method(typeof(MegaCrit.Sts2.Core.Nodes.Cards.NCard), "Create"), nameof(NoCardNode));
             Patch(AccessTools.Method(typeof(MegaCrit.Sts2.Core.Multiplayer.Replay.CombatReplayWriter), "WriteReplay"), nameof(SkipVoid));
+            // O-020. Outside combat FoulPotion.PassesCustomUsabilityCheck asks whether the merchant's button node is
+            // on screen with the inventory closed (GetFoulPotionMerchantTarget). This host has no nodes. In an
+            // ordinary shop room the button is always there and the player can always close the inventory, so that
+            // part is answered yes; the room test stays, and inside combat and in a Fake Merchant event the
+            // original getter runs. OnUse runs original: with no NRun merchant room it skips the splash and the
+            // merchant's line (sound, Rng.Chaotic dialogue, rumble) and awaits PlayerCmd.GainGold.
+            Patch(AccessTools.PropertyGetter(typeof(MegaCrit.Sts2.Core.Models.Potions.FoulPotion),
+                nameof(MegaCrit.Sts2.Core.Models.Potions.FoulPotion.PassesCustomUsabilityCheck)), nameof(FoulPotionAtAMerchantWithoutNodes));
             return Restore;
         }
         catch { Restore(); throw; }
+    }
+
+    private static bool FoulPotionAtAMerchantWithoutNodes(MegaCrit.Sts2.Core.Models.Potions.FoulPotion __instance, ref bool __result)
+    {
+        if (MegaCrit.Sts2.Core.Combat.CombatManager.Instance.IsInProgress
+            || __instance.Owner.RunState.CurrentRoom is not MegaCrit.Sts2.Core.Rooms.MerchantRoom) return true;
+        __result = true;
+        return false;
     }
 
     private static bool NoEventRoomNode(ref MegaCrit.Sts2.Core.Nodes.Rooms.NEventRoom __result)

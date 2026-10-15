@@ -12,6 +12,7 @@
 #include "nosl/actor_filter.h"
 #include "nosl/observation.h"
 #include "nosl/policy_net.h"
+#include "nosl/resample.h"
 
 using namespace sts2;
 
@@ -168,6 +169,21 @@ int32_t nosl_batch_fork(void* handle, int32_t source, int32_t destination) {
         to.error = std::string("offline slot fork: ") + error.what();
     }
     return to.status;
+}
+
+int32_t nosl_batch_resample(void* handle, int32_t index, uint64_t seed) {
+    Batch* batch = Cast(handle);
+    if (!batch || index < 0 || static_cast<size_t>(index) >= batch->slots.size()) return -1;
+    Slot& slot = batch->slots[static_cast<size_t>(index)];
+    if (!slot.env || slot.status != NOSL_RUNNING) return -1;
+    if (!slot.env->state().combat.is_in_progress || slot.env->decision().kind != DecisionKind::Combat) return -2;
+    try {
+        nosl::ResampleHidden(*slot.env, seed);
+    } catch (const std::exception& error) {
+        slot.status = NOSL_ERROR;
+        slot.error = std::string("offline slot resample: ") + error.what();
+    }
+    return slot.status;
 }
 
 int32_t nosl_batch_step(void* handle, const int32_t* choice, int32_t auto_forced,

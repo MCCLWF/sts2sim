@@ -1,0 +1,29 @@
+{
+  "source": "Sts2Oracle",
+  "scope": "card-pool-only-monologue (1 cards), upgrade 2",
+  "encounter": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER",
+  "starting_energy": 12,
+  "starting_stars": 50,
+  "max_actions": 100,
+  "upgrade": 2,
+  "oracle_trace": "regent-card-pool-only-monologue-upgraded-2-oracle.jsonl",
+  "sim_trace": "regent-card-pool-only-monologue-upgraded-2-sim.jsonl",
+  "cases": [
+    {
+      "model": "Monologue",
+      "card_id": "MONOLOGUE",
+      "seed": "REGENTCARD01",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    }
+  ],
+  "totals": {
+    "models": 1,
+    "identical": 1,
+    "states": 13,
+    "matched_states": 13
+  }
+}

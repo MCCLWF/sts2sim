@@ -3,6 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DefineConstants Condition="'$(PilotPanelTest)' == 'true'">$(DefineConstants);NOSL_PANEL_TEST</DefineConstants>
     <Sts2Dir Condition="'$(Sts2Dir)' == ''">$(HOME)/snap/steam/common/.local/share/Steam/steamapps/common/Slay the Spire 2</Sts2Dir>
     <Sts2DataDir Condition="'$(Sts2DataDir)' == ''">$(Sts2Dir)/data_sts2_linuxbsd_x86_64</Sts2DataDir>
   </PropertyGroup>

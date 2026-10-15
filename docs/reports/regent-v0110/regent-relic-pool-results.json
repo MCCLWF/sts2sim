@@ -1,0 +1,97 @@
+{
+  "source": "Sts2Oracle",
+  "scope": "REGENT_RELIC_POOL",
+  "encounter": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER",
+  "oracle_trace": "regent-relic-pool-oracle.jsonl",
+  "sim_trace": "regent-relic-pool-sim.jsonl",
+  "cases": [
+    {
+      "model": "DivineRight",
+      "item_id": null,
+      "seed": "REGENTRELIC01",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "FencingManual",
+      "item_id": "FENCING_MANUAL",
+      "seed": "REGENTRELIC02",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "GalacticDust",
+      "item_id": "GALACTIC_DUST",
+      "seed": "REGENTRELIC03",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "LunarPastry",
+      "item_id": "LUNAR_PASTRY",
+      "seed": "REGENTRELIC04",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "MiniRegent",
+      "item_id": "MINI_REGENT",
+      "seed": "REGENTRELIC05",
+      "identical": true,
+      "states": 7,
+      "matched_states": 7,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "OrangeDough",
+      "item_id": "ORANGE_DOUGH",
+      "seed": "REGENTRELIC06",
+      "identical": true,
+      "states": 10,
+      "matched_states": 10,
+      "selections": 1,
+      "difference": null
+    },
+    {
+      "model": "Regalite",
+      "item_id": "REGALITE",
+      "seed": "REGENTRELIC07",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "VitruvianMinion",
+      "item_id": "VITRUVIAN_MINION",
+      "seed": "REGENTRELIC08",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "selections": 0,
+      "difference": null
+    }
+  ],
+  "totals": {
+    "models": 8,
+    "identical": 8,
+    "states": 80,
+    "matched_states": 80,
+    "selections": 1,
+    "matched_selections": 1
+  }
+}

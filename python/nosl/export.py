@@ -13,6 +13,9 @@ Power-context models use format 3, with (features, power_context=1) after
 the header and the two owner-pooling tensors after the feature tensors.
 Action-interaction models use format 4, with (features, power_context,
 action_interaction=1) and a final bias-free interaction projection.
+
+A checkpoint with a separate critic is written without it: the file holds the
+policy, and its value output is not the critic's.
 """
 from __future__ import annotations
 
@@ -52,14 +55,23 @@ def tensor_names(layers: int, features: int = 1, power_context: bool = False, ac
     return names
 
 
-def export(checkpoint: str, out: str) -> dict:
+def export(checkpoint: str, out: str, critic: bool = False) -> dict:
+    """`critic`: write the checkpoint's separate critic instead, as a network of its own. Its value output is the
+    critic's estimate (its action logits are untrained). Offline diagnostics only."""
     model, _ = load(checkpoint, "cpu")
+    if critic:
+        if model.value_net is None:
+            raise ValueError("the checkpoint has no separate critic")
+        model = model.value_net
     config, state = model.config, model.state_dict()
     features = config.get("features", 1)
     power_context = bool(config.get("power_context", False))
     action_interaction = bool(config.get("action_interaction", False))
     names = tensor_names(config["layers"], features, power_context, action_interaction)
-    missing = set(state) - set(names)
+    # A separate critic (model.value_net) is a training-time part: the policy's logits do not read it, so it is
+    # left out. The native value output is then the policy trunk's own value head, which nothing trained.
+    separate_critic = any(k.startswith("value_net.") for k in state)
+    missing = {k for k in set(state) - set(names) if not k.startswith("value_net.")}
     if missing:
         raise ValueError(f"the checkpoint has tensors the native format does not know: {sorted(missing)}")
     with open(out, "wb") as stream:
@@ -74,15 +86,17 @@ def export(checkpoint: str, out: str) -> dict:
             tensor = state[name].detach().cpu().numpy().astype("<f4")
             np.array([tensor.ndim, *tensor.shape], dtype="<i4").tofile(stream)
             tensor.tofile(stream)
-    return {"tensors": len(names), "parameters": int(sum(state[n].numel() for n in names))}
+    return {"tensors": len(names), "parameters": int(sum(state[n].numel() for n in names)),
+            "separate_critic_left_out": separate_critic}
 
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--checkpoint", required=True)
     p.add_argument("--out", required=True)
+    p.add_argument("--critic", action="store_true", help="write the separate critic as a network of its own")
     args = p.parse_args(argv)
-    print(export(args.checkpoint, args.out))
+    print(export(args.checkpoint, args.out, args.critic))
 
 
 if __name__ == "__main__":

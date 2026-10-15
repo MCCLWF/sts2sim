@@ -5,14 +5,17 @@
 //                 [--player teacher] [--teacher-beam 30] [--teacher-nodes 10000] [--teacher-ms 10000]
 //                 [--player net --weights W.bin]
 //                 [--player fair [--weights W.bin] [--max-turns N]]
-//                 [--kinds boss,elite,normal,weak] [--max-combats-per-run N]
+//                 [--player rollout --weights W.bin [--rollout-samples 8] [--rollout-top 4] [--rollout-z 1]
+//                                   [--rollout-win 3] [--rollout-lose 1] [--rollout-potion-hp 4]]
+//                 [--player critic --weights W.bin --critic CRITIC.bin [--rollout-samples 4] [--rollout-top 4] [--rollout-z 1]]
+//                 [--kinds boss,elite,normal,weak] [--acts 0,1] [--max-combats-per-run N]
 //
 // FILE holds {seed, ascension, actor_filter, action_rows} lines (python -m
 // nosl.evaluate --trajectories, or an experiment's evaluation rows). Each run
 // is replayed with the sampler's semantics. At the first decision of each
 // combat the Env is cloned and the offline player finishes that combat on the
 // clone; the replay then goes on with the recorded policy. One line per
-// combat: the root (act, floor, encounter, HP, deck, relics, potions), the
+// combat: the root (how many recorded rows precede it, act, floor, encounter, HP, deck, relics, potions), the
 // recorded policy's result and the offline player's result.
 //
 // nosl_combat_diag asks a related question with one solver call per combat and
@@ -45,9 +48,30 @@
 // --weights when there is one, else it is the first legal answer. Those
 // answers are counted (`unfair` holds their number: they are not the
 // solver's).
+//
+// `rollout` is one step of policy improvement over the public policy of
+// --weights, also without foresight (the rollout algorithm of Tesauro and
+// Galperin, 1996). At each decision the policy's `--rollout-top` most
+// probable actions are each tried on `--rollout-samples` resampled copies
+// (the same resampling as `fair`, the same copies for every action) and the
+// policy itself, greedy, finishes the combat on each copy. A finished copy is
+// worth `--rollout-win` plus the fraction of maximum HP left, less
+// `--rollout-potion-hp` HP for each potion spent; a death is worth
+// `--rollout-lose` times the fraction of the enemies' HP that was gone, so
+// that a fight the policy loses still ranks its actions (the values are a
+// diagnostic's, not a training signal). The policy's own action is kept unless another one's mean is
+// higher by more than `--rollout-z` standard errors of the paired
+// difference. It answers one question: from these roots and with this deck,
+// how much better than the policy does a player get by looking ahead with
+// the policy as its own model of the future. Choices inside an effect are
+// answered by the policy, as for `fair` (`unfair` counts them); `solves`
+// counts the decisions that were rolled out and `changed` those where the
+// rollouts replaced the policy's action; `changes` lists them (what the
+// player saw, the policy's action, the action taken, the mean gain).
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -67,59 +91,27 @@
 #include "nosl/observation.h"
 #include "nosl/policies.h"
 #include "nosl/policy_net.h"
+#include "tools/nosl/rollout.h"
 
 using namespace sts2;
+namespace rollout = sts2::nosl::rollout;
+using rollout::FightKind;
+using rollout::Hp;
+using rollout::Parse;
+using rollout::Resample;
+using rollout::Trajectory;
 using Clock = std::chrono::steady_clock;
 
 namespace {
 
-struct Trajectory { std::string seed; int ascension = 10, filter = 0; std::vector<int32_t> rows; };
-
-bool Field(const std::string& line, const std::string& key, std::string& out) {
-    const size_t at = line.find("\"" + key + "\":");
-    if (at == std::string::npos) return false;
-    size_t begin = at + key.size() + 3;
-    while (begin < line.size() && line[begin] == ' ') ++begin;
-    size_t end = begin;
-    if (line[begin] == '[') end = line.find(']', begin) + 1;
-    else if (line[begin] == '"') { ++begin; end = line.find('"', begin); }
-    else end = line.find_first_of(",}", begin);
-    out = line.substr(begin, end - begin);
-    return true;
-}
-
-Trajectory Parse(const std::string& line) {
-    Trajectory t;
-    std::string value;
-    if (!Field(line, "seed", t.seed) || !Field(line, "action_rows", value)) throw std::invalid_argument("trajectory line lacks seed or action_rows");
-    for (char& c : value) if (c == ',' || c == '[' || c == ']') c = ' ';
-    std::istringstream rows(value);
-    for (int32_t row; rows >> row;) t.rows.push_back(row);
-    if (Field(line, "ascension", value)) t.ascension = std::stoi(value);
-    if (Field(line, "actor_filter", value)) t.filter = std::stoi(value);
-    return t;
-}
-
-std::string FightKind(const std::string& encounter) {
-    auto ends = [&](const char* suffix) {
-        const std::string s(suffix);
-        return encounter.size() >= s.size() && encounter.compare(encounter.size() - s.size(), s.size(), s) == 0;
-    };
-    if (ends("_BOSS")) return "boss";
-    if (ends("_ELITE")) return "elite";
-    if (ends("_WEAK")) return "weak";
-    return "normal";
-}
-
 struct Result {
     bool ran = false, survived = false;
-    int32_t hp_after = 0, potions = 0, actions = 0, end_turns = 0, solves = 0, fallback = 0, unfair = 0;
+    int32_t hp_after = 0, potions = 0, actions = 0, end_turns = 0, solves = 0, fallback = 0, unfair = 0, changed = 0;
     bool first_solve_won = false;
     double ms = 0;
     std::string error;
+    std::vector<std::string> changes;  // --player rollout: one JSON object per decision the rollouts changed
 };
-
-int32_t Hp(Env& env) { return env.state().creatures[env.state().run.player.creature].current_hp; }
 
 // The offline player finishes the combat `root` is in, on a copy.
 Result PlayOffline(const Env& root, const std::string& player, const nosl::TeacherOptions& options, int64_t max_steps) {
@@ -189,20 +181,6 @@ Result PlayNet(const Env& root, const nosl::PolicyNet& net, int64_t max_steps) {
     }
     r.ms = std::chrono::duration<double, std::milli>(Clock::now() - begin).count();
     return r;
-}
-
-// Resample on `world` everything the player cannot see: pile orders and the combat's random streams.
-void Resample(Env& world, uint64_t seed) {
-    GameState& g = world.state();
-    uint64_t k = seed;
-    auto fresh = [&k] { k += 0x9E3779B97F4A7C15ull; return Rng(k); };
-    for (RunRngType type : {RunRngType::Shuffle, RunRngType::CombatCardGeneration, RunRngType::CombatPotionGeneration,
-                            RunRngType::CombatCardSelection, RunRngType::CombatEnergyCosts, RunRngType::CombatTargets,
-                            RunRngType::MonsterAi, RunRngType::Niche, RunRngType::CombatOrbs})
-        g.run.rng[type] = fresh();
-    g.combat.encounter_rng = fresh();
-    for (Creature enemy : CombatState(&world.sim()).Enemies()) enemy.st().monster.rng = fresh();
-    world.Determinize(seed);  // last: it also takes the snapshot a choice inside an effect replays from
 }
 
 bool SamePublic(const Env& a, const Env& b, nosl::Observation& oa, nosl::Observation& ob) {
@@ -287,12 +265,198 @@ Result PlayFair(const Env& root, const nosl::TeacherOptions& options, const nosl
     return r;
 }
 
+// "PlayCard STRIKE_SILENT+ Attack" and the like, for the log of changed decisions.
+std::string Describe(Env& env, const Action& a) {
+    static const char* kinds[] = {"StartRun", "MapMove", "PlayCard", "EndTurn", "TakeReward", "Proceed", "EventOption",
+                                  "RestOption", "ShopBuy", "TreasurePick", "UsePotion", "DiscardPotion", "Answer", "Resume"};
+    static const char* types[] = {"None", "Attack", "Skill", "Power", "Status", "Curse", "Quest"};
+    std::string text = kinds[a.kind];
+    Player player(&env.sim(), 1);
+    if (a.kind == Action::PlayCard) {
+        const auto cards = player.PlayerCombatState().Hand().Cards();
+        if (a.index >= 0 && static_cast<size_t>(a.index) < cards.size()) {
+            CardModel card = cards[static_cast<size_t>(a.index)];
+            text += " " + std::string(name(card.CardId_()));
+            for (int32_t i = 0; i < card.CurrentUpgradeLevel(); ++i) text += "+";
+            const size_t type = static_cast<size_t>(card.Type());
+            text += std::string(" ") + (type < std::size(types) ? types[type] : "?");
+        }
+    } else if (a.kind == Action::UsePotion) {
+        if (PotionModel potion = player.GetPotionAtSlotIndex(a.index)) text += " " + std::string(name(potion.PotionId_()));
+    }
+    if (a.target >= 0) text += " @" + std::to_string(a.target);
+    return text;
+}
+
+// The public policy improved by one step of lookahead with its critic finishes the combat `root` is in.
+// Each of the policy's `ro.top` most probable actions is taken on `ro.samples` resampled copies; a copy is worth
+// what the critic says at the next decision it stops at, or, when the action ended the combat, what the trainer
+// would have paid (nosl.combat_ppo --reward combat: (3 + HP change since the combat began / max HP - 0.06 per
+// potion) / 3 for a survived combat, 0 for a death). No rollout: it asks whether the critic alone tells actions
+// apart. `solves` counts the decisions looked at and `changed` those where the policy's action was replaced.
+Result PlayCritic(const Env& root, const nosl::PolicyNet& net, const nosl::PolicyNet& critic, const rollout::Options& ro,
+                  int64_t max_steps, uint64_t seed) {
+    Result r;
+    r.ran = true;
+    const auto begin = Clock::now();
+    try {
+        std::unique_ptr<Env> env = root.Clone();
+        nosl::ActorFilter filter(nosl::kActorFilterV1);
+        nosl::Observation obs, seen;
+        std::vector<float> logits, unused;
+        float value = 0;
+        const int32_t max_hp = std::max(1, env->state().creatures[env->state().run.player.creature].max_hp);
+        const int32_t hp_start = Hp(*env);
+        auto worth = [&](Env& world, nosl::ActorFilter f, const Action& first) {
+            f.OnAction(first);
+            world.Step(first);
+            for (int guard = 0; guard < 200; ++guard) {
+                if (world.decision().kind == DecisionKind::Ended || !world.state().combat.is_in_progress) break;
+                nosl::Observe(world, seen);
+                f.Apply(seen);
+                if (seen.legal.size() != 1) {
+                    float v = 0;
+                    critic.Forward(seen, unused, v);
+                    return static_cast<double>(v);
+                }
+                f.OnAction(seen.legal[0]);   // a decision with one action is taken without asking, as the sampler does
+                world.Step(seen.legal[0]);
+            }
+            const int32_t hp = Hp(world);
+            if (hp <= 0) return 0.0;
+            const int32_t potions = r.potions + (first.kind == Action::UsePotion);
+            return (3.0 + static_cast<double>(hp - hp_start) / max_hp - 0.06 * potions) / 3.0;
+        };
+        for (int64_t step = 0;; ++step) {
+            if (env->decision().kind == DecisionKind::Ended || !env->state().combat.is_in_progress) break;
+            if (step >= max_steps) { r.error = "step_limit"; break; }
+            nosl::Observe(*env, obs);
+            filter.Apply(obs);
+            if (obs.legal.empty()) { r.error = "no_legal_action"; break; }
+            size_t row = 0;
+            if (obs.legal.size() > 1) {
+                net.Forward(obs, logits, value);
+                std::vector<size_t> order(logits.size());
+                for (size_t i = 0; i < order.size(); ++i) order[i] = i;
+                std::stable_sort(order.begin(), order.end(), [&](size_t a, size_t b) { return logits[a] > logits[b]; });
+                row = order[0];
+                if (env->decision().kind == DecisionKind::Choice) {
+                    ++r.unfair;
+                } else {
+                    order.resize(std::min(order.size(), static_cast<size_t>(std::max(1, ro.top))));
+                    ++r.solves;
+                    rollout::Trial trial;
+                    trial.rows = order;
+                    trial.worth.resize(order.size());
+                    for (int32_t n = 0; n < ro.samples; ++n) {
+                        std::vector<double> sample;
+                        try {
+                            for (size_t candidate : order) {
+                                std::unique_ptr<Env> world = env->Clone();
+                                Resample(*world, seed + 0x100000001B3ull * static_cast<uint64_t>(step + 1) + static_cast<uint64_t>(n));
+                                sample.push_back(worth(*world, filter, obs.legal[candidate]));
+                            }
+                        } catch (const std::exception&) { continue; }
+                        for (size_t c = 0; c < order.size(); ++c) trial.worth[c].push_back(sample[c]);
+                    }
+                    row = trial.rows[trial.best(ro.z)];
+                    if (row != order[0]) ++r.changed;
+                }
+            }
+            const Action action = obs.legal[row];
+            if (action.kind == Action::UsePotion) ++r.potions;
+            if (action.kind == Action::EndTurn) ++r.end_turns;
+            ++r.actions;
+            filter.OnAction(action);
+            env->Step(action);
+        }
+        r.hp_after = Hp(*env);
+        r.survived = r.hp_after > 0 && r.error.empty();
+    } catch (const std::exception& e) {
+        r.error = std::string(e.what()).substr(0, 160);
+    }
+    r.ms = std::chrono::duration<double, std::milli>(Clock::now() - begin).count();
+    return r;
+}
+
+// The public policy improved by rollouts of itself finishes the combat `root` is in (see the file comment).
+Result PlayRollout(const Env& root, const nosl::PolicyNet& net, const rollout::Options& ro, int64_t max_steps, uint64_t seed) {
+    Result r;
+    r.ran = true;
+    const auto begin = Clock::now();
+    try {
+        std::unique_ptr<Env> env = root.Clone();
+        nosl::ActorFilter filter(nosl::kActorFilterV1);
+        nosl::Observation obs;
+        std::vector<float> logits;
+        float value = 0;
+        const int32_t max_hp = env->state().creatures[env->state().run.player.creature].max_hp;
+        for (int64_t step = 0;; ++step) {
+            if (env->decision().kind == DecisionKind::Ended || !env->state().combat.is_in_progress) break;
+            if (step >= max_steps) { r.error = "step_limit"; break; }
+            nosl::Observe(*env, obs);
+            filter.Apply(obs);
+            if (obs.legal.empty()) { r.error = "no_legal_action"; break; }
+            size_t row = 0;
+            if (obs.legal.size() > 1) {
+                net.Forward(obs, logits, value);
+                std::vector<size_t> order(logits.size());
+                for (size_t i = 0; i < order.size(); ++i) order[i] = i;
+                std::stable_sort(order.begin(), order.end(), [&](size_t a, size_t b) { return logits[a] > logits[b]; });
+                row = order[0];
+                if (env->decision().kind == DecisionKind::Choice) {
+                    ++r.unfair;  // nothing can be resampled here: the policy's answer stands
+                } else {
+                    ++r.solves;
+                    const rollout::Trial trial = rollout::Try(*env, filter, obs, logits, net, ro, max_hp,
+                                                              seed + 0x100000001B3ull * static_cast<uint64_t>(step + 1));
+                    double best = 0;
+                    row = trial.rows[trial.best(ro.z, &best)];
+                    if (row != order[0]) {
+                        ++r.changed;
+                        // What the player saw: HP, block, energy, and the damage the enemies show for this turn.
+                        int32_t incoming = 0;
+                        for (size_t i = 0; i < obs.token_count(); ++i) {
+                            const int32_t* t = &obs.tokens[i * nosl::kTokenWidth];
+                            if (t[nosl::kColType] == static_cast<int32_t>(nosl::TokenType::Enemy) && t[nosl::kColN7] && t[nosl::kColN3] > 0)
+                                incoming += t[nosl::kColN3] * std::max(1, t[nosl::kColN4]);
+                        }
+                        JsonWriter w;
+                        w.begin_object().field("turn", obs.global[nosl::kGTurn]).field("hp", obs.global[nosl::kGHp])
+                            .field("block", obs.global[nosl::kGBlock]).field("energy", obs.global[nosl::kGEnergy])
+                            .field("hand", obs.global[nosl::kGHandCount]).field("incoming", incoming)
+                            .field("policy", Describe(*env, obs.legal[order[0]])).field("taken", Describe(*env, obs.legal[row]))
+                            .field("gain", best).end_object();
+                        r.changes.push_back(w.str());
+                    }
+                }
+            }
+            const Action action = obs.legal[row];
+            if (action.kind == Action::UsePotion) ++r.potions;
+            if (action.kind == Action::EndTurn) ++r.end_turns;
+            ++r.actions;
+            filter.OnAction(action);
+            env->Step(action);
+        }
+        r.hp_after = Hp(*env);
+        r.survived = r.hp_after > 0 && r.error.empty();
+    } catch (const std::exception& e) {
+        r.error = std::string(e.what()).substr(0, 160);
+    }
+    r.ms = std::chrono::duration<double, std::milli>(Clock::now() - begin).count();
+    return r;
+}
+
 struct Options {
     std::string player = "teacher";
     std::shared_ptr<const nosl::PolicyNet> net;       // --player net
     std::shared_ptr<const nosl::PolicyNet> fair_net;  // --player fair: answers choices inside effects
+    std::shared_ptr<const nosl::PolicyNet> rollout_net;  // --player rollout
+    std::shared_ptr<const nosl::PolicyNet> critic_policy, critic_net;  // --player critic
+    rollout::Options rollout;
     nosl::TeacherOptions teacher;
     std::set<std::string> kinds;
+    std::set<int32_t> acts;  // act indexes the offline player plays (empty: all)
     int32_t max_combats_per_run = 1 << 30;
 };
 
@@ -308,6 +472,7 @@ void Replay(const Trajectory& t, const Options& options, std::vector<std::string
         int32_t hp_before = 0, potions = 0, end_turns = 0, actions = 0;
     } combat;
     int32_t combats_done = 0;
+    int32_t consumed = 0;  // recorded action rows taken so far
     auto close = [&] {
         if (!combat.open) return;
         combat.open = false;
@@ -319,9 +484,15 @@ void Replay(const Trajectory& t, const Options& options, std::vector<std::string
         if (o.ran) {
             w.key("offline").begin_object().field("survived", o.survived).field("hp_after", o.hp_after)
                 .field("potions", o.potions).field("end_turns", o.end_turns).field("actions", o.actions)
-                .field("solves", o.solves).field("fallback", o.fallback).field("unfair", o.unfair)
+                .field("solves", o.solves).field("fallback", o.fallback).field("unfair", o.unfair).field("changed", o.changed)
                 .field("first_solve_won", o.first_solve_won)
-                .field("ms", o.ms).field("error", o.error).end_object();
+                .field("ms", o.ms).field("error", o.error);
+            if (!o.changes.empty()) {
+                w.key("changes").begin_array();
+                for (const std::string& change : o.changes) w.raw_json(change);
+                w.end_array();
+            }
+            w.end_object();
         }
         w.end_object();
         lines.push_back(w.str());
@@ -337,7 +508,7 @@ void Replay(const Trajectory& t, const Options& options, std::vector<std::string
             Sim* sim = &env.sim();
             Player player(sim, 1);
             JsonWriter& w = combat.head;
-            w.begin_object().field("seed", t.seed).field("act", g.run.current_act_index).field("floor", g.run.total_floor)
+            w.begin_object().field("seed", t.seed).field("row_index", consumed).field("act", g.run.current_act_index).field("floor", g.run.total_floor)
                 .field("encounter", encounter).field("fight", kind).field("hp_before", combat.hp_before)
                 .field("max_hp", player.Creature().MaxHp()).field("gold", player.Gold());
             w.key("deck").begin_array();
@@ -352,11 +523,14 @@ void Replay(const Trajectory& t, const Options& options, std::vector<std::string
             for (int32_t slot = 0; slot < player.MaxPotionCount(); ++slot)
                 if (PotionModel potion = player.GetPotionAtSlotIndex(slot)) w.value(std::string(name(potion.PotionId_())));
             w.end_array();
-            if ((options.kinds.empty() || options.kinds.count(kind)) && combats_done < options.max_combats_per_run) {
+            if ((options.kinds.empty() || options.kinds.count(kind)) && (options.acts.empty() || options.acts.count(g.run.current_act_index)) &&
+                combats_done < options.max_combats_per_run) {
+                const uint64_t combat_seed = xxhash64(t.seed.data(), t.seed.size(), static_cast<uint64_t>(combats_done));
                 combat.offline = options.net ? PlayNet(env, *options.net, 4000)
+                                 : options.critic_net ? PlayCritic(env, *options.critic_policy, *options.critic_net, options.rollout, 4000, combat_seed)
+                                 : options.rollout_net ? PlayRollout(env, *options.rollout_net, options.rollout, 4000, combat_seed)
                                  : options.player == "fair"
-                                     ? PlayFair(env, options.teacher, options.fair_net.get(), 4000,
-                                                xxhash64(t.seed.data(), t.seed.size(), static_cast<uint64_t>(combats_done)))
+                                     ? PlayFair(env, options.teacher, options.fair_net.get(), 4000, combat_seed)
                                      : PlayOffline(env, options.player, options.teacher, 4000);
                 ++combats_done;
             }
@@ -390,6 +564,7 @@ void Replay(const Trajectory& t, const Options& options, std::vector<std::string
         count(action);
         filter.OnAction(action);
         env.Step(action);
+        ++consumed;
         forced();
     }
     close();  // a run that ended inside a combat
@@ -410,6 +585,24 @@ int main(int argc, char** argv) {
             options.net = nosl::PolicyNet::Load(opt["weights"]);
         }
         if (options.player == "fair" && opt.count("weights")) options.fair_net = nosl::PolicyNet::Load(opt["weights"]);
+        if (options.player == "critic") {
+            if (!opt.count("weights") || !opt.count("critic")) throw std::invalid_argument("--player critic needs --weights and --critic");
+            options.critic_policy = nosl::PolicyNet::Load(opt["weights"]);
+            options.critic_net = nosl::PolicyNet::Load(opt["critic"]);
+            options.rollout.samples = number("rollout-samples", 4);
+            options.rollout.top = number("rollout-top", 4);
+            if (opt.count("rollout-z")) options.rollout.z = std::stod(opt["rollout-z"]);
+        }
+        if (options.player == "rollout") {
+            if (!opt.count("weights")) throw std::invalid_argument("--player rollout needs --weights");
+            options.rollout_net = nosl::PolicyNet::Load(opt["weights"]);
+            options.rollout.samples = number("rollout-samples", 8);
+            options.rollout.top = number("rollout-top", 4);
+            if (opt.count("rollout-z")) options.rollout.z = std::stod(opt["rollout-z"]);
+            if (opt.count("rollout-win")) options.rollout.win = std::stod(opt["rollout-win"]);
+            if (opt.count("rollout-lose")) options.rollout.lose = std::stod(opt["rollout-lose"]);
+            if (opt.count("rollout-potion-hp")) options.rollout.potion_hp = std::stod(opt["rollout-potion-hp"]);
+        }
         if (opt.count("max-turns")) options.teacher.config.MaxTurns = number("max-turns", 64);
         options.teacher.config.Profile.BeamWidth = number("teacher-beam", 30);
         options.teacher.config.Profile.MaxExpandedNodes = number("teacher-nodes", 10000);
@@ -419,6 +612,10 @@ int main(int argc, char** argv) {
         if (opt.count("kinds")) {
             std::istringstream kinds(opt["kinds"]);
             for (std::string kind; std::getline(kinds, kind, ',');) options.kinds.insert(kind);
+        }
+        if (opt.count("acts")) {
+            std::istringstream acts(opt["acts"]);
+            for (std::string act; std::getline(acts, act, ',');) options.acts.insert(std::stoi(act));
         }
         std::vector<Trajectory> runs;
         std::ifstream in(opt["trajectories"]);

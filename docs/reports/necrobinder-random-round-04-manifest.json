@@ -1,0 +1,18 @@
+{
+  "round": 4,
+  "source_audit": "docs/audits/necrobinder-v0110-source-inventory.md",
+  "count": 100,
+  "unique": 100,
+  "max_length": 16,
+  "fresh_vs_prior_rounds": true,
+  "seeds_file": "docs/reports/necrobinder-random-round-04-seeds.txt",
+  "trace_file": "docs/reports/necrobinder-random-round-04.oracle.jsonl",
+  "replay_log": "docs/reports/necrobinder-random-round-04.replay.log",
+  "pre_fix_trace_file": "docs/reports/necrobinder-random-round-04-pre-byrdonis-fix.oracle.jsonl",
+  "pre_fix_replay_log": "docs/reports/necrobinder-random-round-04-pre-byrdonis-fix.replay.log",
+  "argument_error_log": "docs/reports/necrobinder-random-round-04-arg-error.log",
+  "command": "python3 tests/l4/l4_run.py --seeds <100 fresh <=16-char seeds, comma-separated> --characters NECROBINDER --policy-seeds 1 --max-decisions 5000 --stop victory --trace-output docs/reports/necrobinder-random-round-04.oracle.jsonl --require-complete --verify-snapshots --verbose",
+  "returncode": 0,
+  "result": "L4 run: 100 runs: 100 identical, 0 stopped at unported content, 0 diverged; 4779/4779 decisions matched",
+  "accepted": true
+}

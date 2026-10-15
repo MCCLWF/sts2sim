@@ -38,6 +38,11 @@ int32_t nosl_batch_swap(void* batch, int32_t a, int32_t b);
 // owned independently. Returns destination status, or -1 on a bad argument.
 // Does not advance either run or expose privileged state to observations.
 int32_t nosl_batch_fork(void* batch, int32_t source, int32_t destination);
+// Offline training only: resample what the player cannot see in a running slot that is inside a combat
+// (nosl/resample.h: pile orders and the combat's random streams). The slot's observation does not change.
+// Returns the slot's status, -1 on a bad argument, -2 when the slot is not in a combat or is at a choice inside
+// an effect (nothing can be resampled there).
+int32_t nosl_batch_resample(void* batch, int32_t index, uint64_t seed);
 // The actor filter of runs reset from now on (nosl/actor_filter.h): 0 none, 1 version 1.
 int32_t nosl_batch_set_filter(void* batch, int32_t version);
 

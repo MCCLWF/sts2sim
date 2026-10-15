@@ -38,7 +38,7 @@ from nosl import native  # noqa: E402
 from nosl.replay import replay  # noqa: E402
 from nosl.strategy_q import outcome_target, read_runs  # noqa: E402
 
-G_DECISION, G_ACT, G_HP, G_MAX_HP, G_PROMPT, G_SOURCE = 1, 4, 7, 8, 32, 33
+G_DECISION, G_ASCENSION, G_ACT, G_HP, G_MAX_HP, G_PROMPT, G_SOURCE = 1, 3, 4, 7, 8, 32, 33
 T_TYPE, T_CARD, T_MISC_A, T_N0 = 0, 1, 6, 8
 ACTION_NAMES = ("StartRun", "MapMove", "PlayCard", "EndTurn", "TakeReward", "Proceed", "EventOption", "RestOption",
                 "ShopBuy", "TreasurePick", "UsePotion", "DiscardPotion", "Answer", "Resume")
@@ -92,6 +92,7 @@ def main():
     p.add_argument("--out", required=True)
     p.add_argument("--workers", type=int, default=6)
     p.add_argument("--limit-runs", type=int, default=0)
+    p.add_argument("--split-ascension", action="store_true", help="map and rest contexts are also split by ascension level")
     p.add_argument("--min-count", type=int, default=200, help="labels with fewer exploratory actions are not printed")
     p.add_argument("--min-context", type=int, default=1500, help="contexts with fewer exploratory actions are not printed")
     args = p.parse_args()
@@ -119,6 +120,8 @@ def main():
             token = tokens[action[1]] if action[1] >= 0 else None
             name = ACTION_NAMES[action[0]]
             act = f"act{g[G_ACT] + 1}"
+            if args.split_ascension:
+                act = f"A{g[G_ASCENSION]} " + act
             samples += 1
             if kind in ("rest", "map", "rewards", "shop", "treasure"):
                 # Only decisions that offered the same set of things are compared with one another: what is on
@@ -143,7 +146,7 @@ def main():
                 where = kind
                 if kind == "rest":
                     hp = g[G_HP] / max(1, g[G_MAX_HP])
-                    where = "rest " + ("hp<50%" if hp < 0.5 else "hp 50-80%" if hp < 0.8 else "hp>=80%")
+                    where = f"rest {act} " + ("hp<50%" if hp < 0.5 else "hp 50-80%" if hp < 0.8 else "hp>=80%")
                 elif kind == "map":
                     where = "map " + act
                 table[(f"{where} offering {menu}", label)].add(y)

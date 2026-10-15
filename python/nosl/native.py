@@ -32,6 +32,7 @@ _LIB.nosl_batch_step.argtypes = [ctypes.c_void_p, _I32P, ctypes.c_int32] + [_I32
 _LIB.nosl_batch_set_active.argtypes = [ctypes.c_void_p, ctypes.c_int32]
 _LIB.nosl_batch_swap.argtypes = [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]
 _LIB.nosl_batch_fork.argtypes = [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]
+_LIB.nosl_batch_resample.argtypes = [ctypes.c_void_p, ctypes.c_int32, ctypes.c_uint64]
 _LIB.nosl_batch_set_filter.argtypes = [ctypes.c_void_p, ctypes.c_int32]
 _LIB.nosl_batch_run_info.argtypes = [ctypes.c_void_p, ctypes.c_int32, _I32P]
 _LIB.nosl_batch_last_error.argtypes = [ctypes.c_void_p, ctypes.c_int32]
@@ -94,6 +95,14 @@ class Batch:
         status = int(_LIB.nosl_batch_fork(self._handle, source, destination))
         if status < 0:
             raise ValueError("fork requires distinct valid slots and a running source")
+        return status
+
+    def resample(self, index: int, seed: int) -> int:
+        """Offline training only: new hidden state for a slot inside a combat (nosl/resample.h). Returns the slot's
+        status, or -2 when nothing can be resampled there."""
+        status = int(_LIB.nosl_batch_resample(self._handle, index, seed & 0xFFFFFFFFFFFFFFFF))
+        if status == -1:
+            raise ValueError("resample requires a valid running slot")
         return status
 
     def run_info(self, index: int) -> dict:

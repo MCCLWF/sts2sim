@@ -1,0 +1,929 @@
+{
+  "source": "Sts2Oracle",
+  "scope": "card-pool (91 cards), upgrade 0",
+  "encounter": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER",
+  "starting_energy": 12,
+  "starting_stars": 50,
+  "max_actions": 100,
+  "upgrade": 0,
+  "oracle_trace": "regent-card-pool-oracle.jsonl",
+  "sim_trace": "regent-card-pool-sim.jsonl",
+  "cases": [
+    {
+      "model": "Alignment",
+      "card_id": "ALIGNMENT",
+      "seed": "REGENTCARD01",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Arsenal",
+      "card_id": "ARSENAL",
+      "seed": "REGENTCARD02",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "AstralPulse",
+      "card_id": "ASTRAL_PULSE",
+      "seed": "REGENTCARD03",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "BeatIntoShape",
+      "card_id": "BEAT_INTO_SHAPE",
+      "seed": "REGENTCARD04",
+      "identical": true,
+      "states": 9,
+      "matched_states": 9,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Begone",
+      "card_id": "BEGONE",
+      "seed": "REGENTCARD05",
+      "identical": true,
+      "states": 15,
+      "matched_states": 15,
+      "card_select_decisions": 5,
+      "difference": null
+    },
+    {
+      "model": "BigBang",
+      "card_id": "BIG_BANG",
+      "seed": "REGENTCARD06",
+      "identical": true,
+      "states": 9,
+      "matched_states": 9,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "BlackHole",
+      "card_id": "BLACK_HOLE",
+      "seed": "REGENTCARD07",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Bombardment",
+      "card_id": "BOMBARDMENT",
+      "seed": "REGENTCARD08",
+      "identical": true,
+      "states": 5,
+      "matched_states": 5,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Bulwark",
+      "card_id": "BULWARK",
+      "seed": "REGENTCARD09",
+      "identical": true,
+      "states": 11,
+      "matched_states": 11,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "BundleOfJoy",
+      "card_id": "BUNDLE_OF_JOY",
+      "seed": "REGENTCARD10",
+      "identical": true,
+      "states": 15,
+      "matched_states": 15,
+      "card_select_decisions": 2,
+      "difference": null
+    },
+    {
+      "model": "CelestialMight",
+      "card_id": "CELESTIAL_MIGHT",
+      "seed": "REGENTCARD11",
+      "identical": true,
+      "states": 5,
+      "matched_states": 5,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Charge",
+      "card_id": "CHARGE",
+      "seed": "REGENTCARD12",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "ChildOfTheStars",
+      "card_id": "CHILD_OF_THE_STARS",
+      "seed": "REGENTCARD13",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "CloakOfStars",
+      "card_id": "CLOAK_OF_STARS",
+      "seed": "REGENTCARD14",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "CollisionCourse",
+      "card_id": "COLLISION_COURSE",
+      "seed": "REGENTCARD15",
+      "identical": true,
+      "states": 17,
+      "matched_states": 17,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Comet",
+      "card_id": "COMET",
+      "seed": "REGENTCARD16",
+      "identical": true,
+      "states": 2,
+      "matched_states": 2,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Conqueror",
+      "card_id": "CONQUEROR",
+      "seed": "REGENTCARD17",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Constellation",
+      "card_id": "CONSTELLATION",
+      "seed": "REGENTCARD18",
+      "identical": true,
+      "states": 3,
+      "matched_states": 3,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Convergence",
+      "card_id": "CONVERGENCE",
+      "seed": "REGENTCARD19",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "CosmicIndifference",
+      "card_id": "COSMIC_INDIFFERENCE",
+      "seed": "REGENTCARD20",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "CrashLanding",
+      "card_id": "CRASH_LANDING",
+      "seed": "REGENTCARD21",
+      "identical": true,
+      "states": 12,
+      "matched_states": 12,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "CrescentSpear",
+      "card_id": "CRESCENT_SPEAR",
+      "seed": "REGENTCARD22",
+      "identical": true,
+      "states": 5,
+      "matched_states": 5,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "CrushUnder",
+      "card_id": "CRUSH_UNDER",
+      "seed": "REGENTCARD23",
+      "identical": true,
+      "states": 12,
+      "matched_states": 12,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "DecisionsDecisions",
+      "card_id": "DECISIONS_DECISIONS",
+      "seed": "REGENTCARD24",
+      "identical": true,
+      "states": 4,
+      "matched_states": 4,
+      "card_select_decisions": 3,
+      "difference": null
+    },
+    {
+      "model": "DefendRegent",
+      "card_id": "DEFEND_REGENT",
+      "seed": "REGENTCARD25",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Devastate",
+      "card_id": "DEVASTATE",
+      "seed": "REGENTCARD26",
+      "identical": true,
+      "states": 3,
+      "matched_states": 3,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "DyingStar",
+      "card_id": "DYING_STAR",
+      "seed": "REGENTCARD27",
+      "identical": true,
+      "states": 11,
+      "matched_states": 11,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "FallingStar",
+      "card_id": "FALLING_STAR",
+      "seed": "REGENTCARD28",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "ForegoneConclusion",
+      "card_id": "FOREGONE_CONCLUSION",
+      "seed": "REGENTCARD29",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Furnace",
+      "card_id": "FURNACE",
+      "seed": "REGENTCARD30",
+      "identical": true,
+      "states": 9,
+      "matched_states": 9,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "GammaBlast",
+      "card_id": "GAMMA_BLAST",
+      "seed": "REGENTCARD31",
+      "identical": true,
+      "states": 5,
+      "matched_states": 5,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "GatherLight",
+      "card_id": "GATHER_LIGHT",
+      "seed": "REGENTCARD32",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Genesis",
+      "card_id": "GENESIS",
+      "seed": "REGENTCARD33",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Glimmer",
+      "card_id": "GLIMMER",
+      "seed": "REGENTCARD34",
+      "identical": true,
+      "states": 15,
+      "matched_states": 15,
+      "card_select_decisions": 12,
+      "difference": null
+    },
+    {
+      "model": "Glitterstream",
+      "card_id": "GLITTERSTREAM",
+      "seed": "REGENTCARD35",
+      "identical": true,
+      "states": 10,
+      "matched_states": 10,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Glow",
+      "card_id": "GLOW",
+      "seed": "REGENTCARD36",
+      "identical": true,
+      "states": 17,
+      "matched_states": 17,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Guards",
+      "card_id": "GUARDS",
+      "seed": "REGENTCARD37",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 1,
+      "difference": null
+    },
+    {
+      "model": "GuidingStar",
+      "card_id": "GUIDING_STAR",
+      "seed": "REGENTCARD38",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "HammerTime",
+      "card_id": "HAMMER_TIME",
+      "seed": "REGENTCARD39",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "HeavenlyDrill",
+      "card_id": "HEAVENLY_DRILL",
+      "seed": "REGENTCARD40",
+      "identical": true,
+      "states": 1,
+      "matched_states": 1,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Hegemony",
+      "card_id": "HEGEMONY",
+      "seed": "REGENTCARD41",
+      "identical": true,
+      "states": 5,
+      "matched_states": 5,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "HeirloomHammer",
+      "card_id": "HEIRLOOM_HAMMER",
+      "seed": "REGENTCARD42",
+      "identical": true,
+      "states": 4,
+      "matched_states": 4,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "HiddenCache",
+      "card_id": "HIDDEN_CACHE",
+      "seed": "REGENTCARD43",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "IAmInvincible",
+      "card_id": "I_AM_INVINCIBLE",
+      "seed": "REGENTCARD44",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "KinglyKick",
+      "card_id": "KINGLY_KICK",
+      "seed": "REGENTCARD45",
+      "identical": true,
+      "states": 3,
+      "matched_states": 3,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "KinglyPunch",
+      "card_id": "KINGLY_PUNCH",
+      "seed": "REGENTCARD46",
+      "identical": true,
+      "states": 7,
+      "matched_states": 7,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "KnockoutBlow",
+      "card_id": "KNOCKOUT_BLOW",
+      "seed": "REGENTCARD47",
+      "identical": true,
+      "states": 3,
+      "matched_states": 3,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "KnowThyPlace",
+      "card_id": "KNOW_THY_PLACE",
+      "seed": "REGENTCARD48",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Largesse",
+      "card_id": "LARGESSE",
+      "seed": "REGENTCARD49",
+      "identical": true,
+      "states": 3,
+      "matched_states": 3,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "LunarBlast",
+      "card_id": "LUNAR_BLAST",
+      "seed": "REGENTCARD50",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "MakeItSo",
+      "card_id": "MAKE_IT_SO",
+      "seed": "REGENTCARD51",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "ManifestAuthority",
+      "card_id": "MANIFEST_AUTHORITY",
+      "seed": "REGENTCARD52",
+      "identical": true,
+      "states": 18,
+      "matched_states": 18,
+      "card_select_decisions": 1,
+      "difference": null
+    },
+    {
+      "model": "MeteorShower",
+      "card_id": "METEOR_SHOWER",
+      "seed": "REGENTCARD53",
+      "identical": true,
+      "states": 4,
+      "matched_states": 4,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "MonarchsGaze",
+      "card_id": "MONARCHS_GAZE",
+      "seed": "REGENTCARD54",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Monologue",
+      "card_id": "MONOLOGUE",
+      "seed": "REGENTCARD55",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "NeutronAegis",
+      "card_id": "NEUTRON_AEGIS",
+      "seed": "REGENTCARD56",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Orbit",
+      "card_id": "ORBIT",
+      "seed": "REGENTCARD57",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "PaleBlueDot",
+      "card_id": "PALE_BLUE_DOT",
+      "seed": "REGENTCARD58",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Parry",
+      "card_id": "PARRY",
+      "seed": "REGENTCARD59",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "ParticleWall",
+      "card_id": "PARTICLE_WALL",
+      "seed": "REGENTCARD60",
+      "identical": true,
+      "states": 19,
+      "matched_states": 19,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Patter",
+      "card_id": "PATTER",
+      "seed": "REGENTCARD61",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "PhotonCut",
+      "card_id": "PHOTON_CUT",
+      "seed": "REGENTCARD62",
+      "identical": true,
+      "states": 10,
+      "matched_states": 10,
+      "card_select_decisions": 6,
+      "difference": null
+    },
+    {
+      "model": "PillarOfCreation",
+      "card_id": "PILLAR_OF_CREATION",
+      "seed": "REGENTCARD63",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Plot",
+      "card_id": "PLOT",
+      "seed": "REGENTCARD64",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Prophesize",
+      "card_id": "PROPHESIZE",
+      "seed": "REGENTCARD65",
+      "identical": true,
+      "states": 11,
+      "matched_states": 11,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Quasar",
+      "card_id": "QUASAR",
+      "seed": "REGENTCARD66",
+      "identical": true,
+      "states": 20,
+      "matched_states": 20,
+      "card_select_decisions": 11,
+      "difference": null
+    },
+    {
+      "model": "Radiate",
+      "card_id": "RADIATE",
+      "seed": "REGENTCARD67",
+      "identical": true,
+      "states": 1,
+      "matched_states": 1,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "RefineBlade",
+      "card_id": "REFINE_BLADE",
+      "seed": "REGENTCARD68",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Reflect",
+      "card_id": "REFLECT",
+      "seed": "REGENTCARD69",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Resonance",
+      "card_id": "RESONANCE",
+      "seed": "REGENTCARD70",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "RoyalGamble",
+      "card_id": "ROYAL_GAMBLE",
+      "seed": "REGENTCARD71",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Royalties",
+      "card_id": "ROYALTIES",
+      "seed": "REGENTCARD72",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SeekingEdge",
+      "card_id": "SEEKING_EDGE",
+      "seed": "REGENTCARD73",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SevenStars",
+      "card_id": "SEVEN_STARS",
+      "seed": "REGENTCARD74",
+      "identical": true,
+      "states": 2,
+      "matched_states": 2,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "ShiningStrike",
+      "card_id": "SHINING_STRIKE",
+      "seed": "REGENTCARD75",
+      "identical": true,
+      "states": 12,
+      "matched_states": 12,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SolarStrike",
+      "card_id": "SOLAR_STRIKE",
+      "seed": "REGENTCARD76",
+      "identical": true,
+      "states": 11,
+      "matched_states": 11,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SpectrumShift",
+      "card_id": "SPECTRUM_SHIFT",
+      "seed": "REGENTCARD77",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SpoilsOfBattle",
+      "card_id": "SPOILS_OF_BATTLE",
+      "seed": "REGENTCARD78",
+      "identical": true,
+      "states": 17,
+      "matched_states": 17,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Stardust",
+      "card_id": "STARDUST",
+      "seed": "REGENTCARD79",
+      "identical": true,
+      "states": 1,
+      "matched_states": 1,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "StrikeRegent",
+      "card_id": "STRIKE_REGENT",
+      "seed": "REGENTCARD80",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SummonForth",
+      "card_id": "SUMMON_FORTH",
+      "seed": "REGENTCARD81",
+      "identical": true,
+      "states": 7,
+      "matched_states": 7,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Supermassive",
+      "card_id": "SUPERMASSIVE",
+      "seed": "REGENTCARD82",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "SwordSage",
+      "card_id": "SWORD_SAGE",
+      "seed": "REGENTCARD83",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Terraforming",
+      "card_id": "TERRAFORMING",
+      "seed": "REGENTCARD84",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "TheSealedThrone",
+      "card_id": "THE_SEALED_THRONE",
+      "seed": "REGENTCARD85",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "TheSmith",
+      "card_id": "THE_SMITH",
+      "seed": "REGENTCARD86",
+      "identical": true,
+      "states": 4,
+      "matched_states": 4,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Tutor",
+      "card_id": "TUTOR",
+      "seed": "REGENTCARD87",
+      "identical": true,
+      "states": 3,
+      "matched_states": 3,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Tyranny",
+      "card_id": "TYRANNY",
+      "seed": "REGENTCARD88",
+      "identical": true,
+      "states": 8,
+      "matched_states": 8,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "Venerate",
+      "card_id": "VENERATE",
+      "seed": "REGENTCARD89",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "VoidForm",
+      "card_id": "VOID_FORM",
+      "seed": "REGENTCARD90",
+      "identical": true,
+      "states": 3,
+      "matched_states": 3,
+      "card_select_decisions": 0,
+      "difference": null
+    },
+    {
+      "model": "WroughtInWar",
+      "card_id": "WROUGHT_IN_WAR",
+      "seed": "REGENTCARD91",
+      "identical": true,
+      "states": 9,
+      "matched_states": 9,
+      "card_select_decisions": 0,
+      "difference": null
+    }
+  ],
+  "totals": {
+    "models": 91,
+    "identical": 91,
+    "states": 855,
+    "matched_states": 855
+  }
+}

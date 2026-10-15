@@ -1,0 +1,85 @@
+
+== C++ build
+[  0%] Checking complete POD field traversal
+[  2%] Built target sts2core
+[  4%] Built target sts2content
+[  6%] Built target test_core
+[  8%] Built target test_content
+[ 12%] Built target sts2engine
+[ 12%] Built target check_state_field_schema
+[ 59%] Built target sts2game
+[ 61%] Built target test_relics
+[ 62%] Built target test_run_event_batch
+[ 63%] Built target test_generated_card_add
+[ 65%] Built target test_vakuu
+[ 67%] Built target test_colorless
+[ 69%] Built target test_potions
+[ 76%] Built target sts2env
+[ 78%] Built target sts2search
+[ 82%] Built target test_preview
+[ 82%] Built target test_env
+[ 84%] Built target test_act_transition
+[ 85%] Built target test_battleworn_timeout
+[ 87%] Built target test_run_queries
+[ 90%] Built target test_snapshot
+[ 91%] Built target test_architect_event
+[ 93%] Built target sts2env_c
+[ 98%] Built target sts2sim_cli
+[100%] Built target test_search
+
+== unit tests (L0/L1 golden vectors, content tables)
+Test project /home/wst/Desktop/MCC/sts2sim-wt/feat-regent-complete-v0110/build
+      Start  1: core_golden
+ 1/17 Test  #1: core_golden ......................   Passed    0.18 sec
+      Start  2: content_tables
+ 2/17 Test  #2: content_tables ...................   Passed    0.00 sec
+      Start  3: env_m3
+ 3/17 Test  #3: env_m3 ...........................   Passed    0.10 sec
+      Start  4: env_snapshot
+ 4/17 Test  #4: env_snapshot .....................   Passed    0.20 sec
+      Start  5: env_preview
+ 5/17 Test  #5: env_preview ......................   Passed    0.23 sec
+      Start  6: env_run_queries
+ 6/17 Test  #6: env_run_queries ..................   Passed    0.49 sec
+      Start  7: env_act_transition
+ 7/17 Test  #7: env_act_transition ...............   Passed    0.38 sec
+      Start  8: env_architect_event
+ 8/17 Test  #8: env_architect_event ..............   Passed    0.05 sec
+      Start  9: generated_card_add
+ 9/17 Test  #9: generated_card_add ...............   Passed    0.02 sec
+      Start 10: search_m3
+10/17 Test #10: search_m3 ........................   Passed    0.10 sec
+      Start 11: potions_common_m4
+11/17 Test #11: potions_common_m4 ................   Passed    0.40 sec
+      Start 12: relics_common_m4
+12/17 Test #12: relics_common_m4 .................   Passed    1.17 sec
+      Start 13: colorless_m4
+13/17 Test #13: colorless_m4 .....................   Passed    3.43 sec
+      Start 14: vakuu_event
+14/17 Test #14: vakuu_event ......................   Passed    0.00 sec
+      Start 15: run_event_batch
+15/17 Test #15: run_event_batch ..................   Passed    0.00 sec
+      Start 16: battleworn_timeout
+16/17 Test #16: battleworn_timeout ...............   Passed    0.14 sec
+      Start 17: env_python
+17/17 Test #17: env_python .......................   Passed    0.17 sec
+
+100% tests passed, 0 tests failed out of 17
+
+Total Test time (real) =   7.07 sec
+
+== smoke: agents play whole runs (no error, no hang; unported content may stop a run)
+smoke: death=96 unported=4
+smoke: death=100
+smoke: boss=3 death=97
+
+== oracle build
+/home/wst/Desktop/MCC/sts2sim-wt/feat-regent-complete-v0110/tools/Sts2Oracle/OracleRun.cs(293,84): warning CS8604: Possible null reference argument for parameter 'player' in 'Task<RelicModel> RelicCmd.Obtain(RelicModel relic, Player player, int index = -1)'. [/home/wst/Desktop/MCC/sts2sim-wt/feat-regent-complete-v0110/tools/Sts2Oracle/Sts2Oracle.csproj]
+
+Build succeeded.
+
+/home/wst/Desktop/MCC/sts2sim-wt/feat-regent-complete-v0110/tools/Sts2Oracle/OracleRun.cs(293,84): warning CS8604: Possible null reference argument for parameter 'player' in 'Task<RelicModel> RelicCmd.Obtain(RelicModel relic, Player player, int index = -1)'. [/home/wst/Desktop/MCC/sts2sim-wt/feat-regent-complete-v0110/tools/Sts2Oracle/Sts2Oracle.csproj]
+    1 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.75

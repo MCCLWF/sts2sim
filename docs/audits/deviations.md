@@ -176,6 +176,36 @@ O-012 已撤销：`OracleCombat` 现在通过 `ICardSelector` 处理 Survivor �
 
 同批 oracle 按 `CombatRoom` 身份重置“奖励已提供”标记，处理 FurCoat + FestivePopper 在首次观测 IsInProgress 前已赢得战斗的路径；客户端仍由原生胜利通知提供奖励，采集驱动不改变奖励生成。PenNib 的静止点 counter 按 `AttacksPlayed % 10` 比较：NonInteractiveMode 中 DoActivateVisuals 的等待内联完成，`AttackToDouble` 与视觉 `_isActivating` 是不同状态。真实客户端短暂显示 10 的动画时序尚未认证。
 
+### O-019 Decimillipede 死亡淡出特效的工厂
+
+- **游戏原文**：`ReattachPower.AfterDeath` 在最后一节死亡时调用 `DoFadeOutOnAllSegments`，后者调用
+  `NMonsterDeathVfx.Create(List<NCreature>)` 实例化死亡淡出场景，再隐藏意图、移走各节的节点。
+  该工厂在 TestMode 打开时返回 null；调用者在返回 null 或节点列表为空时直接返回。
+- **oracle 做法**：`Headless.InstallLiveCombatPresentation`（TestMode 关闭的战斗表现适配）
+  用 Harmony 前缀让这个工厂返回 null。只针对接收节点列表的这一个重载。
+- **为什么不影响逻辑**：工厂只读场景缓存并创建特效节点，不读写战斗状态、不抽任何影响规则的
+  随机数。击杀、`AfterDeath` 钩子、`ShouldOwnerDeathTriggerFatal` 与胜负判定都走正版原样。
+- **验证状态**：没有它时，TestMode 关闭的整局回放在杀死最后一节的那一步抛
+  `NullReferenceException`（无头宿主没有场景缓存）。补上后 `NR2EVAL000644` 的 539 个脚本动作
+  与 Env 逐决策一致，直到第 38 层死亡（R2 报告）。只验收了这一条轨迹；实机里这段表现代码照常运行。
+
+### O-020 恶臭药水在商店里的可用性判断
+
+- **游戏原文**：`FoulPotion.PassesCustomUsabilityCheck` 在战斗外先看房间是不是商店（或假商人事件），
+  再要求 `GetFoulPotionMerchantTarget(room).button != null`：商人按钮节点在场、且商品界面没有打开。
+  `OnUse` 在商店里先做表现（溅射特效、`NMerchantRoom.FoulPotionThrown` 的音效、用 `Rng.Chaotic`
+  抽一句台词、震屏），然后 `PlayerCmd.GainGold(100)`。
+- **oracle 做法**：`Headless.InstallEnvOperationPresentation` 给这个 getter 加 Harmony 前缀：战斗外、
+  房间是普通商店时回答“可用”；战斗内和假商人事件走原 getter。`OnUse` 原样运行（没有商店节点时它自己跳过表现）。
+- **为什么不影响逻辑**：被替换的只是“按钮节点在不在、商品界面关没关”这一问。真实界面里商店房间的
+  商人按钮一直在，玩家随时可以关掉商品界面再扔；它不读写跑局状态，也不抽影响规则的随机数。
+  房间类型的判断、金币的增加与其钩子都走正版。模拟器的移植（`game/Models/Potions/FoulPotion.h`）
+  同样只看房间类型。
+- **没有覆盖的**：假商人事件里的效果经过事件的界面节点（`NFakeMerchant`）才触发，无头宿主里
+  原 getter 回答“不可用”，这类轨迹 oracle 仍然回放不了；模拟器在那里的行为没有 oracle 验证。
+- **验证状态**：没有它时，在商店里用恶臭药水的轨迹在那一步被 oracle 拒绝（R5 回放 `NR5G6T017435`、
+  `NR5G6T091515` 时发现）。补上后的结果见 R5 报告。
+
 ### O-017 reward reroll alternatives 的 headless 缓存资格
 
 `CardReward.OnSelect` 为 testSelector 保留首次 alternatives；真实 `NCardRewardSelectionScreen.RefreshOptions(CardRewardAlternative.Generate(...))` 会在已重抽后移除 REROLL。coverage-v2保留历史缓存采样，第二次REROLL没有真实UI合法性；其旧证据不重写、不升级。API已按源拒绝禁用项。新默认coverage-v3绑定正在领取的原生CardReward，读取CanReroll，只采样可用的原索引并记录原生合法性事实；5个旧故障身份新采集4301/4301完整一致，实际7次重抽后的7次选择均排除REROLL，52CTest/L2/L3/L4候选门禁通过，见[采集与覆盖报告](../reports/2026-09-30-coverage-v3-legal-rewards.md)。自然8000历史批没有REROLL/SACRIFICE执行。该项仍限制旧driver/UI证据，未放宽游戏规则、API或比较。

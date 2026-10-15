@@ -1,0 +1,3 @@
+# Pael relic run paths
+
+Source: v0.111.0 `Models/Relics/Paels{Blood,Claw,Eye,Flesh,Growth,Horn,Tooth}.cs`, `Models/Events/Pael.cs`, related enchantments and rest-site options. All seven are selectable by Pael, and run logic extends beyond the event selection. Port source behavior in complete model batches, including required card selection, enchantment, rest-site, serializable-card, turn, and reward state. Keep mutable data in POD and make every UI choice explicit in Env. Regenerate dispatch; validate each effect with direct original probes and with run continuations, including snapshot restoration. Record unsupported paths explicitly until their full dependencies are implemented. Do not use observed divergences as the implementation specification.

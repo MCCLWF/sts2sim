@@ -1,0 +1,5 @@
+ok    SILENTRELICS01 SILENT policy 1 ['CALCIFIED_CULTIST', 'DAMP_CULTIST'] (20 states)
+ok    SILENTRELICS01 SILENT policy 3 ['CALCIFIED_CULTIST', 'DAMP_CULTIST'] (18 states)
+ok    SILENTRELICS02 SILENT policy 1 ['CALCIFIED_CULTIST', 'DAMP_CULTIST'] (16 states)
+ok    SILENTRELICS02 SILENT policy 3 ['CALCIFIED_CULTIST', 'DAMP_CULTIST'] (18 states)
+L3 combat: 4/4 combats identical, 0 unported, 0 diverged, 72/72 states matched

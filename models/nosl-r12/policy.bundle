@@ -1,0 +1,15 @@
+nosl-policy-bundle 1
+combat combat.bin
+base base.bin
+strategy strategy.bin
+margin 0.02
+table table.tsv
+table_delta 0.01
+readiness readiness.tsv
+readiness_lambda 2.0
+readiness_scope cards,upgrade
+readiness_chain 1
+readiness_table 1
+combat_value combat_value.bin
+combat_margin 0.05
+guards nodiscard,nobuyfull,takerewards

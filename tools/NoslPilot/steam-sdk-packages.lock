@@ -1,0 +1,8 @@
+18bd8ebeb489bec41760d3a07743a821d6f9a3738d86907897abf54baadf3aab https://repo.steampowered.com/steamrt3/apt/pool/main/g/gcc-14/cpp-14-x86-64-linux-gnu_14.2.0-19~steamrt3.1+bsrt3.1_amd64.deb
+080fda53fcf03a6fc8479f071e820d2bbf5e2ee89bc6de5027f25b628249e13d https://repo.steampowered.com/steamrt3/apt/pool/main/g/gcc-14/g++-14-x86-64-linux-gnu_14.2.0-19~steamrt3.1+bsrt3.1_amd64.deb
+e7c1e49d7ad699c8a47464eb23019d3fce4cf70bb76007d88530f024706a22c1 https://repo.steampowered.com/steamrt3/apt/pool/main/g/gcc-14/gcc-14-x86-64-linux-gnu_14.2.0-19~steamrt3.1+bsrt3.1_amd64.deb
+77a6d1e81a511534efd1f318c22dce749907ed0cc14abbca78dade868649439e https://repo.steampowered.com/steamrt3/apt/pool/main/g/gcc-14/libgcc-14-dev_14.2.0-19~steamrt3.1+bsrt3.1_amd64.deb
+432777b892ab53679bb01d132b53731cf064d31e8d7353c20b52bc869db15bc2 https://repo.steampowered.com/steamrt3/apt/pool/main/g/gcc-14/libstdc++-14-dev_14.2.0-19~steamrt3.1+bsrt3.1_amd64.deb
+05f7264da867b37f4c5ce49266b558ea1e81e05a9464f623152fca70f3550282 https://deb.debian.org/debian/pool/main/g/glibc/libc6_2.31-13+deb11u11_amd64.deb
+e7f7b45d9c5cfcf37609f0b6efd3c645272c812144703af89dfd32218fcb0fd3 https://deb.debian.org/debian/pool/main/g/glibc/libc6-dev_2.31-13+deb11u11_amd64.deb
+e3be603bd12377bb90fcfb0f2048ca3a81c886e49d6f09945b82159d1c54f7b2 https://deb.debian.org/debian/pool/main/l/linux/linux-libc-dev_5.10.223-1_amd64.deb

@@ -77,7 +77,7 @@ target_link_libraries(combatsolver_search PRIVATE sts2combatsolver)
 
 # Silent A10 NoSL work: baseline policies and a whole-run measurement runner.
 # Env consumers; timing-dependent, so not a CTest gate.
-add_library(sts2nosl STATIC nosl/policies.cpp nosl/observation.cpp nosl/actor_filter.cpp nosl/policy_net.cpp)
+add_library(sts2nosl STATIC nosl/policies.cpp nosl/observation.cpp nosl/actor_filter.cpp nosl/policy_net.cpp nosl/resample.cpp)
 target_link_libraries(sts2nosl PUBLIC sts2combatsolver)
 add_executable(nosl_run tools/nosl/nosl_run.cpp)
 target_link_libraries(nosl_run PRIVATE sts2nosl)
@@ -95,6 +95,18 @@ add_executable(nosl_card_table tools/nosl/nosl_card_table.cpp)
 target_link_libraries(nosl_card_table PRIVATE sts2nosl)
 add_executable(nosl_headroom tools/nosl/nosl_headroom.cpp)
 target_link_libraries(nosl_headroom PRIVATE sts2nosl)
+# The same forward pass built for speed, for offline tools that run it millions of times: the host's vector
+# instructions and reassociated sums (the project-wide flags keep float sums in source order, which leaves the
+# inner products scalar). Its logits differ from sts2nosl's in the last bits; nothing deployed links it.
+add_library(sts2nosl_fastnet STATIC nosl/policy_net.cpp)
+target_link_libraries(sts2nosl_fastnet PUBLIC sts2nosl)
+target_compile_options(sts2nosl_fastnet PRIVATE -march=native -fno-math-errno -fno-trapping-math -fno-signed-zeros -fassociative-math)
+add_executable(nosl_rollout_labels tools/nosl/nosl_rollout_labels.cpp)
+target_link_libraries(nosl_rollout_labels PRIVATE sts2nosl_fastnet sts2nosl)
+# The same-root tool with the fast forward pass, for its rollout player only (rollouts run the policy millions of
+# times). Comparisons of a deployed policy use nosl_headroom, whose forward pass is the deployed one.
+add_executable(nosl_headroom_fast tools/nosl/nosl_headroom.cpp)
+target_link_libraries(nosl_headroom_fast PRIVATE sts2nosl_fastnet sts2nosl)
 # The sampler ABI for Python (python/nosl): one single-threaded batch per process.
 set_target_properties(sts2nosl PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_library(sts2nosl_c SHARED nosl/batch_api.cpp)
@@ -103,8 +115,17 @@ target_link_libraries(sts2nosl_c PRIVATE sts2nosl)
 # actor filter and the native forward pass behind one "next action" call.
 add_library(sts2nosl_pilot SHARED nosl/actor.cpp nosl/pilot.cpp nosl/pilot_api.cpp)
 target_link_libraries(sts2nosl_pilot PRIVATE sts2nosl)
+option(STS2_PILOT_C_ABI_ONLY "Hide pilot C++ symbols for the standalone game Mod package" OFF)
+if(STS2_PILOT_C_ABI_ONLY AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Keep the bundled C++ implementation private to the C ABI. Steam/Godot may
+  # already have an older libstdc++ loaded; it must not interpose our static one.
+  target_link_options(sts2nosl_pilot PRIVATE "LINKER:--version-script=${CMAKE_CURRENT_SOURCE_DIR}/nosl/pilot_exports.map")
+  set_property(TARGET sts2nosl_pilot APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/nosl/pilot_exports.map")
+endif()
 add_executable(nosl_pilot tools/nosl/nosl_pilot.cpp)
 target_link_libraries(nosl_pilot PRIVATE sts2nosl_pilot sts2nosl)
+add_executable(nosl_actor_check tools/nosl/nosl_actor_check.cpp nosl/actor.cpp)
+target_link_libraries(nosl_actor_check PRIVATE sts2nosl)
 
 # Mod-facing search consumer. This stays outside the ordinary Env C ABI.
 add_library(sts2solver SHARED search/combatsolver/mod_api.cpp search/combatsolver/live_schema.cpp)

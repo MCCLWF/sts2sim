@@ -9,8 +9,9 @@ observation, and a shard can be rebuilt from the recorded action rows
 (nosl.strategy_q shards) if it is lost.
 
 Reading yields training batches padded to the widest decision in the batch,
-with decisions of similar size batched together and a bound on padded tokens
-per batch, so that the map screen's hundred tokens cannot exhaust the GPU.
+drawn at random within a few wide size classes and with a bound on padded
+tokens per batch, so that the map screen's hundred tokens neither set the
+width of every batch nor exhaust the GPU.
 """
 from __future__ import annotations
 
@@ -20,8 +21,10 @@ import numpy as np
 
 from . import native
 
-# Per-decision scalars: the action row taken, whether it was exploratory, and the run's index and real end.
-SCALARS = {"choice": np.int16, "explored": bool, "floor": np.int16, "run_act": np.int8, "status": np.int8, "run": np.int32}
+# Per-decision scalars: the action row taken, whether it was exploratory, the run's index and real end, and
+# the decision's position among the run's action rows (so the decisions of a run can be put back in order).
+SCALARS = {"choice": np.int16, "explored": bool, "floor": np.int16, "run_act": np.int8, "status": np.int8,
+           "run": np.int32, "step": np.int32}
 
 
 class ShardWriter:
@@ -86,6 +89,20 @@ def load_shard(path):
     return data
 
 
+def load_group(paths):
+    """Several shards as one: training draws its batches from all of them at once.
+
+    One shard holds a few thousand runs, and about forty decisions of a run share one outcome. A model stepped
+    through one shard at a time learns those runs' outcomes, moves on and forgets them; it ended up fitting even
+    its own training runs worse than a model trained on a mixed stream. A group of shards dilutes every run."""
+    parts = [load_shard(path) for path in paths]
+    data = {k: np.concatenate([p[k] for p in parts]) for k in parts[0] if k not in ("tok_at", "act_at")}
+    del parts
+    data["tok_at"] = np.concatenate([[0], np.cumsum(data["nt"])[:-1]]).astype(np.int64)
+    data["act_at"] = np.concatenate([[0], np.cumsum(data["na"])[:-1]]).astype(np.int64)
+    return data
+
+
 def pad(flat, at, count, rows):
     """[len(rows), widest, width]: the variable-length rows of `flat` selected by `rows`, zero padded."""
     width = max(1, int(count[rows].max()))
@@ -94,18 +111,39 @@ def pad(flat, at, count, rows):
     return flat[np.minimum(position, len(flat) - 1)] * inside[..., None]
 
 
-def batches(data, rows, batch_size, token_budget, rng):
-    """Batches over the decisions `rows` of one loaded shard: similar sizes together, random batch order."""
-    order = rows[np.argsort(data["nt"][rows] + rng.random(len(rows)))]
-    cuts, begin = [], 0
-    while begin < len(order):
-        widest = int(data["nt"][order[min(len(order), begin + batch_size) - 1]])
-        size = max(32, min(batch_size, token_budget // max(1, widest)))
-        cuts.append(order[begin:begin + size])
-        begin += size
+def batches(data, rows, batch_size, token_budget, rng, edges=(28, 48), by_run=False):
+    """Batches over the decisions `rows` of loaded shards, in random order. Each batch carries `rows`, the
+    positions of its decisions.
+
+    Decisions are batched within a few wide size classes (token counts up to each of `edges`, and above), so that
+    the map screen's hundred tokens do not set the width of every batch. Within a class the batches are drawn
+
+      by_run=False  at random: every batch holds decisions of about as many runs as it has rows;
+      by_run=True   run by run: the runs are put in a random order and each batch takes the decisions of
+                    consecutive runs, so it holds a few dozen whole runs.
+
+    About forty decisions of a run share one outcome, so with by_run the gradient of a step is the outcome noise
+    of a few dozen runs rather than of a thousand."""
+    sizes = data["nt"][rows]
+    classes = np.searchsorted(np.asarray(edges), sizes, side="left")
+    if by_run:
+        runs = data["run"][rows].astype(np.int64)
+        unique, inverse = np.unique(runs, return_inverse=True)
+        rank = rng.permutation(len(unique))[inverse]
+        order = np.lexsort((data["step"][rows], rank))
+    else:
+        order = rng.permutation(len(rows))
+    rows, classes = rows[order], classes[order]
+    cuts = []
+    for c in range(len(edges) + 1):
+        members = rows[classes == c]
+        if not len(members):
+            continue
+        size = max(32, min(batch_size, token_budget // max(1, int(data["nt"][members].max()))))
+        cuts += [members[begin:begin + size] for begin in range(0, len(members), size)]
     for which in rng.permutation(len(cuts)):
         pick = np.sort(cuts[which])
-        yield {"global": data["g"][pick],
+        yield {"rows": pick, "global": data["g"][pick],
                "tokens": pad(data["tok"], data["tok_at"], data["nt"], pick),
                "actions": pad(data["actions"], data["act_at"], data["na"], pick),
                "counts": np.stack([data["nt"][pick], data["na"][pick]], axis=1).astype(np.int32),

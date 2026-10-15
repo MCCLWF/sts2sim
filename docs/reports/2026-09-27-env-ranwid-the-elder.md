@@ -1,0 +1,9 @@
+# Ranwid the Elder differential result
+
+Date: 2026-09-27. Fixed game source: v0.111.0 `Models/Events/RanwidTheElder.cs` and `Commands/RelicCmd.cs`.
+
+The generic Env now locks potion use/removal for the event, selects the potion and tradable relic in source RNG order, and offers the three original trade actions. Option arguments retain the selected instance identities across snapshot restore, with explicit snapshot reference validation. The three callbacks call ordinary potion, gold, relic and relic bag operations. Generic `RelicCmd::Remove` now invokes the original `AfterRemoved` hook; `Replace` uses it as well.
+
+An earlier oracle trace reached decision 597/602 and then differed in the Act 2 Crusher/Rocket fight: it showed a dead Crusher and an Anger still in play while Env had completed death and pile cleanup. A fresh headless oracle run exposed the cause: `Crusher.BeforeDeath` and `Rocket.BeforeDeath` dereference an absent audio singleton and throw; that invalid trace had recorded an interrupted action. The existing presentation-only Kaiser death patch was applied to the full-run oracle as well. With that patch, a newly generated `SEED0003`, policy 1, A0, no Neow, 10000 HP trace **matched all 603/603 decisions** through the Act 2 boundary, including per-decision snapshot restore (`/tmp/mcc-env-seed0003-kaiser-l4.log`). The patch skips only those two audio/background animation hooks; ordinary `CreatureCmd`, combat, and run death hooks still execute. The previously captured 602-decision trace remains invalid evidence after the interrupted action.
+
+The public numeric DynamicVar representation does not yet expose the original `StringVar` values used to render the selected potion/relic titles. This remains a generic query/API gap. The exact relic trade, gold trade and locked-option branches also need targeted original differential traces.

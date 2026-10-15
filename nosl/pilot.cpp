@@ -109,6 +109,7 @@ std::string Pilot::Next() {
     if (decision.kind == DecisionKind::Choice) WriteChoice(w, decision.request);
     w.field("digest", Digest(env_)).field("row", static_cast<int64_t>(row)).field("rows", static_cast<int64_t>(obs_.legal.size()))
         .field("prob", prob).field("value", static_cast<double>(value));
+    if (chosen.capped) w.field("capped", true);   // the actor's turn cap ended the turn (nosl/actor.h)
     env_.Step(action);
     ++step_;
     w.field("ms", std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count()).end_object();

@@ -1,0 +1,47 @@
+{
+  "source": "Sts2Oracle",
+  "scope": "REGENT_POTION_POOL",
+  "encounter": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER",
+  "oracle_trace": "regent-potion-pool-oracle.jsonl",
+  "sim_trace": "regent-potion-pool-sim.jsonl",
+  "cases": [
+    {
+      "model": "CosmicConcoction",
+      "item_id": "COSMIC_CONCOCTION",
+      "seed": "REGENTPOTION01",
+      "identical": true,
+      "states": 17,
+      "matched_states": 17,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "KingsCourage",
+      "item_id": "KINGS_COURAGE",
+      "seed": "REGENTPOTION02",
+      "identical": true,
+      "states": 12,
+      "matched_states": 12,
+      "selections": 0,
+      "difference": null
+    },
+    {
+      "model": "StarPotion",
+      "item_id": "STAR_POTION",
+      "seed": "REGENTPOTION03",
+      "identical": true,
+      "states": 13,
+      "matched_states": 13,
+      "selections": 0,
+      "difference": null
+    }
+  ],
+  "totals": {
+    "models": 3,
+    "identical": 3,
+    "states": 42,
+    "matched_states": 42,
+    "selections": 0,
+    "matched_selections": 0
+  }
+}

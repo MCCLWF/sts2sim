@@ -61,7 +61,7 @@ def _worker(conn, runs, config):
             for j in range(slots):
                 if current[j] is None and queue:
                     run = queue.pop()
-                    if batch.reset(j, run["seed"], 10) != native.RUNNING:
+                    if batch.reset(j, run["seed"], run["ascension"]) != native.RUNNING:
                         raise RuntimeError(f"replay of {run['seed']} did not start")
                     current[j], position[j] = run, 0
                     active += 1
@@ -88,6 +88,7 @@ def _worker(conn, runs, config):
                 target = np.array([current[j]["target"] for j in emit], np.float32)
                 of_run = {key: np.array([current[j][source] for j in emit], np.int32)
                           for key, source in (("run", "id"), ("floor", "floor"), ("run_act", "act"), ("status", "status"))}
+                of_run["step"] = np.array([position[j] for j in emit], np.int32)
                 small = cn[rows, 0] <= SMALL_TOKENS
                 for name, mask in (("small", small), ("large", ~small)):
                     if mask.any():
@@ -123,15 +124,16 @@ def _worker(conn, runs, config):
 
 def replay(runs, *, workers, order_seed, select="outside", slots=64, chunk=512, max_tokens=192, max_actions=160,
            max_steps=30000):
-    """Yields chunks {global, tokens, actions, counts, choice, target, explored, run, floor, run_act, status}
-    of the selected decisions; `run` is the index of the decision's run in `runs`.
+    """Yields chunks {global, tokens, actions, counts, choice, target, explored, run, floor, run_act, status, step}
+    of the selected decisions; `run` is the index of the decision's run in `runs` and `step` its position among
+    that run's action rows.
 
     `runs`: recorded runs with seed, status, floor, act, action_rows, and the
     caller's `target` (float) and `explored_set` (set of action-row positions).
     Every run is replayed once; chunk order depends on process timing."""
     order = np.random.default_rng(order_seed).permutation(len(runs))
     fields = ("seed", "status", "floor", "act", "action_rows", "target", "explored_set")
-    shuffled = [{**{k: runs[i][k] for k in fields}, "id": int(i)} for i in order]
+    shuffled = [{**{k: runs[i][k] for k in fields}, "id": int(i), "ascension": int(runs[i].get("ascension", 10))} for i in order]
     context = mp.get_context("spawn")
     config = {"slots": slots, "chunk": chunk, "max_tokens": max_tokens, "max_actions": max_actions,
               "max_steps": max_steps, "select": select}
